@@ -61,10 +61,10 @@ def task6():
     storona = float(input("введите длину стороны основания "))
     height = float(input("введите высоту пирамиды "))
     apofema = ((storona / 2)**2 + height**2)**0.5
-    S_main = storona**2
-    S_bok = 1/2 * apofema * storona * 4
-    S_full = S_main + S_bok
-    print("Площадь полной поверхности пирамиды равна", "{0:.4f}".format(S_full))
+    s_main = storona**2
+    s_bok = 1/2 * apofema * storona * 4
+    s_full = s_main + s_bok
+    print("Площадь полной поверхности пирамиды равна", "{0:.4f}".format(s_full))
 
 
 def task7():
