@@ -7,9 +7,8 @@ def task1():
     z = float(input("Введите значение z "))
     a = (abs(x-1)**(1/3) + m.cos(y)) / (m.tan(y) + m.sinh(y))
     b = m.log(abs(z - 1)**(1/2) + abs(y)**(1/3) / (1 + z**2)**(1/2)) + m.sin(y) * m.sin(x)
-    print("a =",float("{0:.4f}".format(a)))
-    print("b =",float("{0:.4f}".format(b)))
-
+    print("a =", float("{0:.4f}".format(a)))
+    print("b =", float("{0:.4f}".format(b)))
 
 
 def task2():
@@ -18,16 +17,15 @@ def task2():
     b = 1
     c = -1
     function = ((x**2 + a * x/b) + c * x**2)**0.5
-    print("значение функции равно",float("{0:.4f}".format(function)),sep = " ")
+    print("значение функции равно", float("{0:.4f}".format(function)))
 
 
 def task3():
     x = float(input("Введите значение x "))
-    function = m.tan(x)**2 * abs(m.log(x**2)
-    print("значение функции равно", float("{0:.4f}".format(function),sep = " ")
+    function = m.tan(x)**2 * abs(m.log(x**2))
+    print("значение функции равно", float("{0:.4f}".format(function)))
 
 
-          
 def task4():
     print("введите координаты первой вершины ")
     vershina1 = (float(input()), float(input()))
@@ -46,10 +44,9 @@ def task4():
     if abs(storona1 - storona2) >= EPS:
         print("Заданная фигура не является ромбом")
     else:
-        print("Площадь равна",float("{0:.4f}".format(ploshad)))
-        print("Периметр равен",float("{0:.4f}".format(perimetr)))
+        print("Площадь равна", float("{0:.4f}".format(ploshad)))
+        print("Периметр равен", float("{0:.4f}".format(perimetr)))
 
-           
 
 def task5():
     G = 6.67 * 10**(-11)
@@ -57,7 +54,7 @@ def task5():
     mass2 = float(input("введите массу второго тела "))
     distance = float(input("введите расстояние между телами "))
     F = G * (mass1 * mass2) / distance**2
-    print(F)
+    print("Сила притяжения между телами равна", F, sep=" ")
 
 
 def task6():
@@ -67,42 +64,41 @@ def task6():
     S_main = storona**2
     S_bok = 1/2 * apofema * storona * 4
     S_full = S_main + S_bok
-    print("{0:.4f}".format(S_full))
+    print("Площадь полной поверхности пирамиды равна", "{0:.4f}".format(S_full))
 
 
 def task7():
     x1 = float(input("введите координату первой точки "))
     x2 = float(input("введите координату второй точки "))
-    print("{0:.4f}".format(abs(x2 - x1)))
+    print("Расстояние между телами равно ", "{0:.4f}".format(abs(x2 - x1)))
 
 
-					
 def task8():
-    boatVelocity = float(input("Введите скорость лодки "))
-    courseVelocity = float(input("Введите скорость течения "))
-    if boatVelocity <= courseVelocity:
+    boat_velocity = float(input("Введите скорость лодки "))
+    course_velocity = float(input("Введите скорость течения "))
+    if boat_velocity <= course_velocity:
         print("Ошибка! Скорость течения больше скорости лодки")
-    timeRiver = float(input("Введите время движения против течения реки "))
-    timeLake = float(input("Введите время движения по озеру"))
-    if boatVelocity < 1:
+    time_river = float(input("Введите время движения против течения реки "))
+    time_lake = float(input("Введите время движения по озеру"))
+    if boat_velocity < 1:
         print("Ошибка! Скорость лодки меньше 1")
-    elif courseVelocity < 1:
+    elif course_velocity < 1:
         print("Ошибка! Скорость течения меньше 1")
-    elif timeRiver < 1:
+    elif time_river < 1:
         print("Ошибка! Время движения против течения реки меньше 1")
-    elif timeLake < 1:
+    elif time_lake < 1:
         print("Ошибка! Время движения по озеру меньше одного ")
-    elif boatVelocity > 100 or courseVelocity > 100 or timeLake > 100 or timeRiver > 100:
+    elif boat_velocity > 100 or course_velocity > 100 or time_lake > 100 or time_river > 100:
         print("Ошибка! Одна из введённых величин больше 100")
 
-    path = boatVelocity * timeLake + (boatVelocity - courseVelocity) * timeRiver
-    if boatVelocity > 1 and boatVelocity < 100 and courseVelocity > 1 and courseVelocity < 100 \
-        and timeRiver > 1 and timeRiver < 100 and timeLake > 1 and timeLake < 100:
-        print(float("{0:.4f}".format(path)))
+    path = boat_velocity * time_lake + (boat_velocity - course_velocity) * time_river
+    if 1 < boat_velocity < 100 and 1 < course_velocity < 100 \
+            and 1 < time_river < 100 and 1 < time_lake < 100:
+        print("Путь равен", float("{0:.4f}".format(path)))
 
 
 def task9():
     rubles = float(input("Введите сумму в рублях "))
     commision = float(input("Введите курс Юаня "))
     yuan = rubles * commision
-    print(float("{0:.3f}".format(yuan)))
+    print(f"{rubles} ₽ равно", float("{0:.3f}".format(yuan)), "¥")
