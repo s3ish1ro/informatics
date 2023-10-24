@@ -88,6 +88,7 @@ def task8():
             print("Ошибка! Одна из введенных величин не принадлежит промежутку [1;100]")
             return 0
     path = boat_velocity * time_lake + (boat_velocity - course_velocity) * time_river
+    print("Путь равен", float("{0:.4f}".format(path)))
 
 
 def task9():
