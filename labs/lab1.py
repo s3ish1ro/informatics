@@ -6,7 +6,7 @@ def task1():
     y = float(input("Введите значение y "))
     z = float(input("Введите значение z "))
     a = (abs(x-1)**(1/3) + m.cos(y)) / (m.tan(y) + m.sinh(y))
-    b = m.log(abs(z - 1)**(1/2)) + abs(y)**(1/3) / (1 + z**2)**(1/2) + m.sin(y) * m.sin(x)
+    b = m.log(abs(z - 1)**(1/2) + abs(y)**(1/3) / (1 + z**2)**(1/2)) + m.sin(y) * m.sin(x)
     print("a =", float("{0:.4f}".format(a)))
     print("b =", float("{0:.4f}".format(b)))
 
@@ -64,7 +64,9 @@ def task6():
     s_main = storona**2
     s_bok = 1/2 * apofema * storona * 4
     s_full = s_main + s_bok
+    v = 1/3 * s_main * height
     print("Площадь полной поверхности пирамиды равна", "{0:.4f}".format(s_full))
+    print("Объем пирамиды равен", "{0:.4f}".format(v))
 
 
 def task7():
@@ -80,25 +82,17 @@ def task8():
         print("Ошибка! Скорость течения больше скорости лодки")
     time_river = float(input("Введите время движения против течения реки "))
     time_lake = float(input("Введите время движения по озеру"))
-    if boat_velocity < 1:
-        print("Ошибка! Скорость лодки меньше 1")
-    elif course_velocity < 1:
-        print("Ошибка! Скорость течения меньше 1")
-    elif time_river < 1:
-        print("Ошибка! Время движения против течения реки меньше 1")
-    elif time_lake < 1:
-        print("Ошибка! Время движения по озеру меньше одного ")
-    elif boat_velocity > 100 or course_velocity > 100 or time_lake > 100 or time_river > 100:
-        print("Ошибка! Одна из введённых величин больше 100")
-
+    data = (boat_velocity, course_velocity, time_lake, time_river)
+    for count in data:
+        if count < 1 or count > 100:
+            print("Ошибка! Одна из введенных величин не принадлежит промежутку [1;100]")
+            return 0
     path = boat_velocity * time_lake + (boat_velocity - course_velocity) * time_river
-    if 1 < boat_velocity < 100 and 1 < course_velocity < 100 \
-            and 1 < time_river < 100 and 1 < time_lake < 100:
-        print("Путь равен", float("{0:.4f}".format(path)))
 
 
 def task9():
     rubles = float(input("Введите сумму в рублях "))
-    commision = float(input("Введите курс Юаня "))
-    yuan = rubles * commision
+    curse = float(input("Введите курс юаня "))
+    comission = float(input("Введите коммисию"))
+    yuan = rubles * curse * (1 - comission)
     print(f"{rubles} ₽ равно", float("{0:.3f}".format(yuan)), "¥")
