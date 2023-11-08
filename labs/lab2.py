@@ -1,3 +1,5 @@
+import math
+
 import matplotlib.pyplot as plt
 import numpy as np
 import math as m
@@ -83,7 +85,6 @@ def task4():
     axes.plot(a2, b2, color='black')
     plt.grid()
     plt.title('Task 4')
-
     def check1(x, y):
         """
         функция проверяет попадает ли точка в левую заданную область с помощью уравнений,
@@ -127,5 +128,79 @@ def task4():
 
 
 def task5():
-    ans = [int(input("Введите число ")) for x in range(3)]
-    print(f"Максимальное значение равно {max(ans)}",f"Минимальное значение равно {min(ans)}")
+    ans = (int(input("Введите число ")) for x in range(3))
+    print(f"Максимальное значение равно {max(ans)}", f"Минимальное значение равно {min(ans)}")
+
+
+def task6():
+    INCREASE_PER_WEEK = 1.1
+    WEEK_PER_MONTH = 4
+    start_number = int(input("Введите начальное количество особей "))
+    critical_number = int(input("Введите критическое значение"))
+    if start_number * INCREASE_PER_WEEK < critical_number:
+        print("Количество особей через неделю равно", float("{0:.4f}".format(start_number * INCREASE_PER_WEEK)))
+    else:
+        print("Количество особей через неделю равно", float("{0:.4f}".format(start_number * INCREASE_PER_WEEK / 3)))
+
+    target_number = int(input("Введите цель "))
+    count = 0
+    species_number = start_number
+    while count < target_number:
+        species_number *= INCREASE_PER_WEEK
+        count += 1
+    if count % WEEK_PER_MONTH == 0:
+        print(f"Количество месяцев для достижения цели равно {count // WEEK_PER_MONTH}")
+    else:
+        print(f"Количество месяцев для достижения цели равно {count // WEEK_PER_MONTH + 1}")
+
+
+def task7():
+    def factorial(x):
+        fact = 1
+        for number in range(1, x + 1):
+            fact *= number
+        return fact
+
+    x = float(input("Введите число x "))
+    length = int(input("Введите длину последовательности "))
+    epsilon = "{0:." + str(input("Введите количество знаков после запятой ")) + "f}"
+    summ = 1
+    for count in range(1, length + 1):
+        summ += x**count / factorial(count)
+    print(float(epsilon.format(summ)))
+
+
+def task8():
+    count1, count2 = 0, 1
+    for i in range(1,9):
+        for j in range(1,i + 1):
+            count1 += (j + i)**2
+    print(f"Значение первого выражения равно {count1}")
+    for i in range(1,6):
+        for j in range(1, i + 1):
+            count2 *= j
+    print(f"Значение второго выражения равно {count2}")
+
+
+def task9():
+    def f(x):
+        return 8 * x**5 - np.sin(x)
+
+    HEIGHT = 0.2
+    s = 0
+    axes = plt.subplot()
+    x_vector = np.linspace(1, 2, 30)
+    y_vector = f(x_vector)
+    axes.plot(x_vector, y_vector, color='red')
+    axes.plot([1, 2], [0, 0], color='k')
+    axes.plot([1, 1], [0, f(1)], color='k', linestyle='--')
+    axes.plot([1.2, 1.2], [0, f(1.2)], color='k', linestyle='--')
+    axes.plot([1.4, 1.4], [0, f(1.4)], color='k', linestyle='--')
+    axes.plot([1.6, 1.6], [0, f(1.6)], color='k', linestyle='--')
+    axes.plot([1.8, 1.8], [0, f(1.8)], color='k', linestyle='--')
+    axes.plot([2, 2], [0, f(2)], color='k', linestyle='--')
+    plt.show()
+
+
+
+
