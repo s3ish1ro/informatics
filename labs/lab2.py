@@ -220,5 +220,5 @@ def task9():
             area += f(numb) * h
         print(area)
 
-    rect_area(1, 2)
+    rect_area(1, 3)
     visual_function()
