@@ -203,24 +203,22 @@ def task9():
         axes.plot(x_vector, y_vector, color='red')
         axes.plot([1, 2], [0, 0], color='k')
         axes.plot([1, 1], [0, f(1)], color='k', linestyle='--')
-        axes.plot([1.2, 1.2], [0, f(1.2)], color='k', linestyle='--')
-        axes.plot([1.4, 1.4], [0, f(1.4)], color='k', linestyle='--')
-        axes.plot([1.6, 1.6], [0, f(1.6)], color='k', linestyle='--')
-        axes.plot([1.8, 1.8], [0, f(1.8)], color='k', linestyle='--')
-        axes.plot([2, 2], [0, f(2)], color='k', linestyle='--')
+        axes.plot([2,2], [0, f(2)], color = 'blue')
         plt.show()
-    visual_function()
 
-    def rect_space():
+    def rect_area(a, b, n=200000):
         """
         функция вычисляет площадь фигуры
         """
-        HEIGHT = 0.2
-        space = 0
-        x_i = 1
-        for step in range(5):
-            space += f(x_i) * HEIGHT
-            x_i += 0.2
-        print(format("{0:.4f}".format(space)))
+        h = (b - a) / n
+        x_i = []
+        for multiplier in range(n):
+            x_i.append(a + (h * multiplier))
 
-    rect_space()
+        area = 0
+        for numb in x_i:
+            area += f(numb) * h
+        print(area)
+
+    rect_area(1, 2)
+    visual_function()
