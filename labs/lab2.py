@@ -5,16 +5,10 @@ import math as m
 
 def task1():
     def func1(x):
-        if (x % 10) % 2 == 0:
-            return True
-        else:
-            return False
+        return (x % 10) % 2 == 0:
 
     def func2(x, y):
-        if x > y:
-            return True
-        else:
-            return False
+        return x > y
 
     x = int(input("Введите число "))
     y = int(input("Введите число для сравнения "))
@@ -51,29 +45,20 @@ def task3():
 
     def number_in_new_numeral_system(number, base):
         count = ''
+        letters = ("A", "B", "C", "D", "E", "F")
         while number != 0:
             if 0 <= number % base <= 9:
-                count += str((number % base) * 10**n)
-            elif number % base == 10:
-                count += 'A'
-            elif number % base == 11:
-                count += 'B'
-            elif number % base == 12:
-                count += 'C'
-            elif number % base == 13:
-                count += 'D'
-            elif number % base == 14:
-                count += 'E'
-            elif number % base == 15:
-                count += 'F'
+                count = str(number % base) + count
+            else:
+                count = letters[(number % base) % 10] + count
 
             number //= base
-        print(count)
+        return count
 
     user_count = int(input("Введите число в 10-чной СС "))
     cs_base = int(input("Введите основание новой СС "))
 
-    number_in_new_numeral_system(user_count, cs_base)
+    print(number_in_new_numeral_system(user_count, cs_base))
 
 
 def task4():
