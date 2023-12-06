@@ -29,33 +29,51 @@ def task1():
 
 
 def task2():
-    def f(x):
-        if x >= m.pi:
-            return m.cos(x) + m.sin(x)
-        else:
-            return m.cos(x) - m.sin(x)
+    def f1(x):
+        return np.cos(x) - np.sin(x)
 
+    def f2(x):
+        return np.cos(x) + np.sin(x)
     d_y = (int(input("введите область определения функции \n")), int(input()))
-    vector_x = [x for x in range(d_y[0], d_y[1] + 1)]
-    vector_y = [f(x) for x in range(d_y[0], d_y[1] + 1)]
+    vector_x = np.linspace(d_y[0], d_y[1], 200)
+    vector_y = []
+    for elem in vector_x:
+        if elem < np.pi:
+            vector_y.append(f1(elem))
+        else:
+            vector_y.append(f2(elem))
     plt.plot(vector_x, vector_y)
     plt.grid()
     plt.show()
 
 
 def task3():
-    number = int(input("Введите число в 10-чной СС "))
-    base = int(input("Введите основание новой СС "))
 
     def number_in_new_numeral_system(number, base):
-        count = 0
-        n = 0
+        count = ''
         while number != 0:
-            count += (number % base) * 10**n
+            if 0 <= number % base <= 9:
+                count += str((number % base) * 10**n)
+            elif number % base == 10:
+                count += 'A'
+            elif number % base == 11:
+                count += 'B'
+            elif number % base == 12:
+                count += 'C'
+            elif number % base == 13:
+                count += 'D'
+            elif number % base == 14:
+                count += 'E'
+            elif number % base == 15:
+                count += 'F'
+
             number //= base
-            n += 1
         print(count)
-    number_in_new_numeral_system(number, base)
+
+    user_count = int(input("Введите число в 10-чной СС "))
+    cs_base = int(input("Введите основание новой СС "))
+
+    number_in_new_numeral_system(user_count, cs_base)
 
 
 def task4():
@@ -109,7 +127,7 @@ def task4():
         elif -1 <= y <= x - 3 and x - 7 <= y <= 0:
             return True
         # упрощенное условие y >= 0 and y >= -x + 3 and y <= -0.2 * x + 1.4
-        elif 0 <= y <= -0.2 * x + 1.4 and y >= -x + 3:
+        elif 0 < y <= (-2 * x + 14) / 10 and y >= -x + 3:
             return True
         else:
             return False
