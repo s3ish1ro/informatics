@@ -210,18 +210,17 @@ def task9():
         plt.show()
 
     def rect_area(a, b, n=200000):
-        """
-        функция вычисляет площадь фигуры
-        """
+    
         h = (b - a) / n
         x_i = []
         for multiplier in range(n):
             x_i.append(a + (h * multiplier))
-
+    
         area = 0
-        for numb in x_i:
-            area += f(numb) * h
+        for numb in range(1, len(x_i)):
+            area += (f(x_i[numb]) + f(x_i[numb - 1])) / 2 * h
         print(area)
 
-    rect_area(1, 3)
-    visual_function()
+    
+rect_area(1,2)
+visual_function()
