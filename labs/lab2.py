@@ -1,11 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import math as m
 
 
 def task1():
     def func1(x):
-        return (x % 10) % 2 == 0:
+        return (x % 10) % 2 == 0
 
     def func2(x, y):
         return x > y
@@ -130,8 +129,8 @@ def task4():
 
 
 def task5():
-    ans = [int(input("Введите число ")) for x in range(3)]
-    print(f"Максимальное значение равно {max(ans)}", f"Минимальное значение равно {min(ans)}")
+    ans = (abs(int(input("Введите число "))) for x in range(3))
+    print(f"Максимальное абсолютное значение равно {max(ans)}", f"Минимальное абсолютное значение равно {min(ans)}")
 
 
 def task6():
@@ -141,18 +140,18 @@ def task6():
     if start_number * INCREASE_PER_WEEK < critical_number:
         print(f"Число особей через неделю равно {start_number * INCREASE_PER_WEEK}")
     else:
-        print(f"Число особей через неделю равно {start_number * INCREASE_PER_WEEK / 3}")
+        print(f"Число особей через неделю равно", "{0:.4f}".format(start_number * INCREASE_PER_WEEK / 3))
     WEEK_PER_MONTH = 4
+    count = 0
     target_number = float(input("Введите цель "))
     species_number = start_number
-    count = 0
     while species_number < target_number:
         species_number *= INCREASE_PER_WEEK
         count += 1
     if count % WEEK_PER_MONTH == 0:
         print(f"Количество месяцев для достижения цели равно {count // WEEK_PER_MONTH}")
     else:
-        print(f"Количество месяцев для достежения цели равно {count // WEEK_PER_MONTH + 1}")
+        print(f"Количество месяцев для достижения цели равно {count // WEEK_PER_MONTH + 1}")
 
 
 def task7():
@@ -166,9 +165,8 @@ def task7():
     epsilon = "{0:." + str(input("Введите количество знаков после запятой ")) + "f}"
     x = int(input("Введите x "))
     summ = 0
-    for count in range(0, line_range + 1):
+    for count in range(0, line_range):
         summ += x**count/fact(count)
-
     print(f"Сумма последовательности при x = {x} и длине {line_range} равна", float(epsilon.format(summ)))
 
 
@@ -183,12 +181,12 @@ def task8():
             count2 *= j
     print(f"Значение второго выражения равно {count2}")
     summ3 = 0
-    count3 = 1
     for i in range(1, 9):
+        count3 = 1
         for j in range(1, 9):
             for k in range(1, 2 * i + 1):
                 count3 *= (2 * j * i - k)
-                summ3 += count3
+        summ3 += count3
     print(f"Значение третьего выражения равно {summ3}")
 
 
@@ -203,24 +201,23 @@ def task9():
         axes = plt.subplot()
         x_vector = np.linspace(1, 2, 30)
         y_vector = f(x_vector)
-        axes.plot(x_vector, y_vector, color='red')
         axes.plot([1, 2], [0, 0], color='k')
         axes.plot([1, 1], [0, f(1)], color='k', linestyle='--')
-        axes.plot([2,2], [0, f(2)], color = 'blue')
+        axes.plot([2, 2], [0, f(2)], color='k', linestyle='--')
+        axes.plot(x_vector, y_vector, color='red')
         plt.show()
 
     def rect_area(a, b, n=200000):
-    
+
         h = (b - a) / n
         x_i = []
-        for multiplier in range(n):
+        for multiplier in range(n + 1):
             x_i.append(a + (h * multiplier))
-    
+
         area = 0
         for numb in range(1, len(x_i)):
-            area += (f(x_i[numb]) + f(x_i[numb - 1])) / 2 * h
-        print(area)
+            area += f(x_i[numb - 1]) * h
+        print("Площадь фигуры равна", "{0:.2f}".format(area))
 
-    
-rect_area(1,2)
-visual_function()
+    rect_area(1, 2)
+    visual_function()
