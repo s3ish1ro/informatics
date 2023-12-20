@@ -194,30 +194,36 @@ def task9():
     def f(x):
         return 8 * x**5 - np.sin(x)
 
-    def visual_function():
+    def visual_function(left_border, right_border, n=30):
         """
         функция отображает график заданной функции
         """
         axes = plt.subplot()
-        x_vector = np.linspace(1, 2, 30)
+        x_vector = np.linspace(left_border, right_border, n)
         y_vector = f(x_vector)
-        axes.plot([1, 2], [0, 0], color='k')
-        axes.plot([1, 1], [0, f(1)], color='k', linestyle='--')
-        axes.plot([2, 2], [0, f(2)], color='k', linestyle='--')
+        axes.plot([left_border, right_border], [0, 0], color='k')
+        axes.plot([left_border, left_border], [0, f(left_border)], color='k', linestyle='--')
+        axes.plot([right_border, right_border], [0, f(right_border)], color='k', linestyle='--')
         axes.plot(x_vector, y_vector, color='red')
         plt.show()
 
-    def rect_area(a, b, n=200000):
+    def rect_area(left_border, right_border, n=200000):
 
-        h = (b - a) / n
+        h = (right_border - left_border) / n
         x_i = []
         for multiplier in range(n + 1):
-            x_i.append(a + (h * multiplier))
-
-        area = 0
+            x_i.append(left_border + (h * multiplier))
+        
+        rectangle_area = 0
         for numb in range(1, len(x_i)):
-            area += f(x_i[numb - 1]) * h
-        print("Площадь фигуры равна", "{0:.2f}".format(area))
+            rectangle_area += f(x_i[numb - 1]) * h
+        return rectangle_area
+
+    a = float(input("Введите левую границу функции "))
+    b = float(input("Введите правую границу функции "))
+    area = rect_area(a, b)
+    print("Площадь фигуры равна", "{0:.2f}".format(area))
+    visual_function(a, b)
 
     rect_area(1, 2)
     visual_function()
