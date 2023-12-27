@@ -1,0 +1,6 @@
+folder1\file.txt
+folder2\file1.txt
+folder2\file2.txt
+folder1\subfolder1\file1.dat
+folder1\subfolder2\file3.txt
+folder1\subfolder
