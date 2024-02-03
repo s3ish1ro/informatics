@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMainWindow, QPushButton, QVBoxLayout, QWidget)
+from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMainWindow, QPushButton, QVBoxLayout, QWidget, QComboBox)
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -27,8 +27,11 @@ class MainWindow(QMainWindow):
         self.range_start_input = QLineEdit('0')
         self.range_end_input = QLineEdit('1')
 
-        self.function_label = QLabel('Функция:')
-        self.function_input = QLineEdit('x**3')
+        self.add_function_button = QPushButton('Добавить функцию в список')
+        self.function_input = QLineEdit('*Введите функцию для добавление в список*')
+        self.function_widget = QComboBox()
+        self.function_widget.addItems(['x', '2*x', 'x**2', 'x**3'])
+        self.add_function_button.clicked.connect(self.add_function)
 
         self.point_amount = QLabel('Количество точек на графике:')
         self.point_input = QLineEdit('50')
@@ -39,8 +42,7 @@ class MainWindow(QMainWindow):
         self.file_button = QPushButton('Сохранить точки в файл')
         self.file_button.clicked.connect(self.file_save)
 
-        layout.addWidget(self.function_label)
-        layout.addWidget(self.function_input)
+        layout.addWidget(self.function_widget)
         layout.addWidget(self.range_label)
         layout.addWidget(self.range_start_input)
         layout.addWidget(self.range_end_input)
@@ -49,11 +51,12 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.plot_button)
         layout.addWidget(self.clear_button)
         layout.addWidget(self.file_button)
-
+        layout.addWidget(self.add_function_button)
+        layout.addWidget(self.function_input)
 
     def vectors(self):
         try:
-            expression = self.function_input.text()
+            expression = self.function_widget.currentText()
         except NameError:
             expression = 'x'
 
@@ -107,6 +110,10 @@ class MainWindow(QMainWindow):
             if len(b) < 6:
                 b += '0' * (6 - len(b))
             file.write(a + '  ' + b + '\n')
+
+    def add_function(self):
+        text_x = self.function_input.text()
+        self.function_widget.addItems([text_x])
 
 
 app = QApplication([])
