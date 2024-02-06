@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         self.range_end_input = QLineEdit('1')
 
         self.add_function_button = QPushButton('Добавить функцию в список')
-        self.function_input = QLineEdit('*Введите функцию для добавление в список*')
+        self.function_input = QLineEdit(' Введите функцию для добавление в список ')
         self.function_widget = QComboBox()
         self.function_widget.addItems(['x', '2*x', 'x**2', 'x**3'])
         self.add_function_button.clicked.connect(self.add_function)
@@ -53,7 +53,6 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.file_button)
         layout.addRow(self.add_function_button, self.function_input)
 
-
     def vectors(self):
         try:
             expression = self.function_widget.currentText()
@@ -70,7 +69,10 @@ class MainWindow(QMainWindow):
             points = 50
 
         functions = {}
-        exec(f'def f(x): return {expression}', functions)
+        try:
+            exec(f'def f(x): return {expression}', functions)
+        except SyntaxError:
+            exec(f'def f(x): return x', functions)
 
         x = np.linspace(range_start, range_end, points)
         function = functions['f']
