@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMainWindow, QPushButton, QVBoxLayout, QWidget, QComboBox)
+from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMainWindow, QPushButton, QFormLayout, QWidget, QComboBox)
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -13,7 +13,7 @@ class MainWindow(QMainWindow):
         self.canvas = FigureCanvas(self.fig)
 
         cental_widget = QWidget()
-        layout = QVBoxLayout()
+        layout = QFormLayout()
         cental_widget.setLayout(layout)
 
         layout.addWidget(self.canvas)
@@ -51,8 +51,8 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.plot_button)
         layout.addWidget(self.clear_button)
         layout.addWidget(self.file_button)
-        layout.addWidget(self.add_function_button)
-        layout.addWidget(self.function_input)
+        layout.addRow(self.add_function_button, self.function_input)
+
 
     def vectors(self):
         try:
