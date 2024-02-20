@@ -1,0 +1,179 @@
+from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMainWindow, QPushButton, QFormLayout, QWidget, QComboBox, QMessageBox)
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5 import QtGui
+import time
+import datetime
+start = time.time()
+
+class MainWindow(QMainWindow):
+    def __init__(self, parent=None):
+        super(MainWindow, self).__init__(parent)
+
+        self.setWindowTitle('График')
+        self.fig = plt.figure()
+        self.canvas = FigureCanvas(self.fig)
+        self.setWindowIcon(QtGui.QIcon('123.png'))
+
+        cental_widget = QWidget()
+        layout = QFormLayout()
+        cental_widget.setLayout(layout)
+
+        layout.addWidget(self.canvas)
+
+        self.setCentralWidget(cental_widget)
+
+        self.plot_button = QPushButton('Нарисовать график')
+        self.plot_button.clicked.connect(self.plot_data)
+
+        self.range_label = QLabel('Диапазон:')
+        self.range_start_input = QLineEdit('-10')
+        self.range_end_input = QLineEdit('10')
+
+        self.add_function_button = QPushButton('Добавить функцию в список')
+        self.function_input = QLineEdit(' Введите функцию для добавление в список ')
+        self.function_widget = QComboBox()
+        self.function_widget.addItems(['x + 3', '2*x - 5', 'x**3 - 5', ''])
+        self.add_function_button.clicked.connect(self.add_function)
+
+        self.point_amount = QLabel('Количество точек на графике:')
+        self.point_input = QLineEdit('50')
+
+        self.clear_button = QPushButton('Очистить график')
+        self.clear_button.clicked.connect(self.clear_plot)
+
+        self.file_button = QPushButton('Сохранить точки в файл')
+        self.file_button.setGeometry(100, 200, 100, 200)
+        self.file_button.clicked.connect(self.file_save)
+
+        self.error_message = QMessageBox()
+        self.error_message.setText("Функция введена неверно!")
+        self.error_message.setWindowTitle('Ошибка!')
+        self.error_message.setIcon(QMessageBox.Critical)
+
+        self.error_message2 = QMessageBox()
+        self.error_message2.setText("На данном диапазоне f(c) != 0")
+        self.error_message2.setWindowTitle('Ошибка!')
+        self.error_message2.setIcon(QMessageBox.Critical)
+
+        self.bisection_button = QPushButton('Метод деления интервалов')
+        self.bisection_button.clicked.connect(self.bisection)
+
+        layout.addWidget(self.function_widget)
+        layout.addWidget(self.range_label)
+        layout.addWidget(self.range_start_input)
+        layout.addWidget(self.range_end_input)
+        layout.addWidget(self.point_amount)
+        layout.addWidget(self.point_input)
+        layout.addWidget(self.plot_button)
+        layout.addWidget(self.clear_button)
+        layout.addWidget(self.file_button)
+        layout.addRow(self.add_function_button, self.function_input)
+        layout.addWidget(self.bisection_button)
+
+    def vectors(self):
+        expression = self.function_widget.currentText()
+
+        try:
+            range_start = float(self.range_start_input.text())
+            range_end = float(self.range_end_input.text())
+            points = int(self.point_input.text())
+        except ValueError:
+            range_start = 0
+            range_end = 1
+            points = 50
+
+        functions = {}
+        x = np.linspace(range_start, range_end, points)
+        try:
+            exec(f'def f(x): return {expression}', functions)
+            function = functions['f']
+            if 'sin(x)' in expression:
+                x = np.linspace(-1, 1, points)
+                y = [np.sin(value) for value in x]
+            else:
+                y = [function(value) for value in x]
+            return x, y
+
+        except NameError:
+            self.error_message.show()
+            return 0
+        except SyntaxError:
+            self.error_message.show()
+            return 0
+
+    def plot_data(self):
+        if self.vectors() != 0:
+            x, y = self.vectors()
+            axes = plt.subplot()
+            axes.plot(x, y)
+            plt.grid(True)
+            plt.xlabel('x')
+            plt.ylabel('y')
+
+            self.centralWidget().layout().itemAt(0).widget().draw()
+
+    def clear_plot(self):
+        for ax in self.fig.axes:
+            ax.clear()
+        plt.grid(True)
+        self.canvas.draw()
+
+    def file_save(self):
+        x, y = self.vectors()
+        file = open('dots.txt', 'w')
+        file.write('x     ' + '  ' + 'y\n')
+        for i in range(len(x)):
+            a, b = map(str, (x[i], y[i]))
+            a, b = a[0:6], b[0:6]
+            if len(a) < 6:
+                a += '0' * (6 - len(a))
+            if len(b) < 6:
+                b += '0' * (6 - len(b))
+            file.write(a + '  ' + b + '\n')
+
+    def add_function(self):
+        text_x = self.function_input.text()
+        self.function_widget.addItems([text_x])
+
+    def bisection(self):
+        a, b = float(self.range_start_input.text()), float(self.range_end_input.text())
+        EPS = 10**-3
+        expression = self.function_widget.currentText()
+        n = 100
+        functions = {}
+        exec(f'def ff(x): return {expression}', functions)
+        f = functions['ff']
+        c = (a + b) / 2
+        if 'sin(x)' in expression:
+            f = lambda x: np.sin(x)
+        if f(c) == 0:
+            plt.scatter(c, f(c))
+            self.canvas.draw()
+        elif f(c) < 0:
+            if f(b) > 0:
+                a = c
+            elif f(a) > 0:
+                b = c
+        elif f(c) > 0:
+            if f(b) < 0:
+                a = c
+            elif f(a) < 0:
+                b = c
+        elif f(c) < EPS:
+            plt.scatter(c, f(c))
+            self.canvas.draw()
+        x = np.linspace(a, b, 10)
+        y = [f(value) for value in x]
+        plt.plot(x, y)
+        self.range_start_input.setText(str(a))
+        self.range_end_input.setText(str(b))
+        self.canvas.draw()
+
+
+
+app = QApplication([])
+main_window = MainWindow()
+main_window.show()
+app.exec()
