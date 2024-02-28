@@ -4,7 +4,7 @@ import matplotlib.patches as ptch
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PIL import Image
 
-im = Image.open('whitewallpaper.png')
+im = Image.open('Безымянный.png')
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
@@ -26,17 +26,23 @@ class MainWindow(QMainWindow):
         self.life_table.setFixedWidth(650)
 
         self.object_table = QTableWidget()
-        self.object_table.setColumnCount(3)
+        self.object_table.setColumnCount(4)
         self.object_table.setRowCount(3)
-        self.object_table.setHorizontalHeaderLabels(['Тип объекта', 'x', 'y'])
+        self.object_table.setHorizontalHeaderLabels(['Тип объекта', 'x', 'y', 'r'])
         self.object_table.setFixedWidth(450)
 
-        self.start_button = QPushButton('Старт')
+        self.start_button = QPushButton('Построить участок')
         self.start_button.clicked.connect(self.plotd)
+
+        self.object_button = QPushButton('Построить объект')
+        self.object_button.clicked.connect(self.object_plot)
+        self.axes = plt.subplot()
+        self.axes.imshow(im)
+        plt.grid(True)
 
         layout.addRow(self.life_table, self.object_table)
         layout.addRow(self.canvas)
-        layout.addRow(self.start_button)
+        layout.addRow(self.start_button, self.object_button)
 
         for i in range(self.object_table.rowCount() + 1):
             self.type_box = QComboBox()
@@ -44,14 +50,23 @@ class MainWindow(QMainWindow):
             self.object_table.setCellWidget(i, 0, self.type_box)
 
     def plotd(self):
-        axes = plt.subplot()
-        axes.imshow(im)
         x, y = map(int, (self.life_table.item(0, 0).text(), self.life_table.item(0, 1).text()))
         l, h = map(int, (self.life_table.item(0, 2).text(), self.life_table.item(0, 3).text()))
         ang = int(self.life_table.item(0, 4).text())
         rect = ptch.Rectangle((x, y), l, h, linewidth=1, edgecolor='black', facecolor='none', angle=ang)
-        axes.add_patch(rect)
-        plt.grid(True)
+        self.axes.add_patch(rect)
+        self.canvas.draw()
+
+    def object_plot(self):
+        obj = str(self.object_table.cellWidget(0, 0).currentText())
+        x, y = map(int, (self.object_table.item(0, 1).text(), self.object_table.item(0, 2).text()))
+        if obj == 'НС':
+            r = int(self.object_table.item(0, 3).text())
+            round = ptch.Circle((x, y), radius=r, color='green')
+            self.axes.add_patch(round)
+        else:
+            self.axes.scatter(x, y, color='black')
+
         self.canvas.draw()
 
 
