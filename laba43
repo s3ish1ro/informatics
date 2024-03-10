@@ -1,12 +1,12 @@
-from icecream import ic
-
-from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMainWindow, QPushButton, QFormLayout, QWidget, QComboBox, QMessageBox, QTableWidget, QTableWidgetItem)
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, QFormLayout, QWidget, QComboBox, QTableWidget)
 import matplotlib.pyplot as plt
 import matplotlib.patches as ptch
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PIL import Image
-from PyQt5.QtCore import Qt
 im = Image.open('whitewallpaper.png')
+im.thumbnail((100, 100))
+
+
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
@@ -43,38 +43,40 @@ class MainWindow(QMainWindow):
         self.axes.imshow(im)
         plt.grid(True)
 
+        self.add_plot_button = QPushButton('Добавить участок')
+        self.add_plot_button.setFixedWidth(450)
+        self.add_plot_button.clicked.connect(self.add_plot)
+        self.add_obj_button = QPushButton('Добавить объект')
+        self.add_obj_button.setFixedWidth(450)
+        self.add_obj_button.clicked.connect(self.add_obj)
         layout.addRow(self.life_table, self.object_table)
         layout.addRow(self.canvas)
         layout.addRow(self.start_button, self.object_button)
-
-
+        layout.addRow(self.add_plot_button, self.add_obj_button)
         self.type_box = QComboBox()
         self.type_box.addItems(['ПВ', 'НС'])
         self.object_table.setCellWidget(0, 0, self.type_box)
 
-    def plotd(self):
-        i = self.life_table.currentRow()
-        self.life_table.insertRow(i + 1)
-        #x, y, l, h = map(int, [self.life_table.item(i, j).text() for j in range(4)])
+        self.rectangles = [[]]
+        self.objects = [[]]
 
+    def plotd(self):
+        self.clear_plot()
+        i = self.life_table.currentRow()
+        # x, y, l, h = map(int, [self.life_table.item(i, j).text() for j in range(4)])
         x, y = map(int, (self.life_table.item(i, 0).text(), self.life_table.item(i, 1).text()))
         l, h = map(int, (self.life_table.item(i, 2).text(), self.life_table.item(i, 3).text()))
         ang = int(self.life_table.item(i, 4).text())
         rect = ptch.Rectangle((x, y), l, h, linewidth=1, edgecolor='black', facecolor='none', angle=ang)
+        self.rectangles[i].append(rect)
         self.axes.add_patch(rect)
         self.canvas.draw()
-
 
     def object_plot(self):
         i = self.object_table.currentRow()
         obj = str(self.object_table.cellWidget(i, 0).currentText())
-        self.object_table.insertRow(i + 1)
-        type_box = QComboBox()
-        type_box.addItems(["ПВ", "НС"])
-        self.object_table.setCellWidget(i + 1, 0, type_box)
-        for j in range(1, 4):
-            self.object_table.item(i, j).setFlags(Qt.ItemIsEnabled)
-        if obj == 'ПВ':
+
+        if obj == 'НС':
             self.build_circle()
         else:
             self.build_scatter()
@@ -82,16 +84,46 @@ class MainWindow(QMainWindow):
         self.canvas.draw()
 
     def build_circle(self):
+        self.clear_circles()
         i = self.object_table.currentRow()
         x, y = map(int, (self.object_table.item(i, 1).text(), self.object_table.item(i, 2).text()))
         r = int(self.object_table.item(i, 3).text())
         circle = ptch.Circle((x, y), radius=r, color='green')
+        self.objects[i].append(circle)
         self.axes.add_patch(circle)
 
     def build_scatter(self):
+        self.clear_circles()
         i = self.object_table.currentRow()
         x, y = map(int, (self.object_table.item(i, 1).text(), self.object_table.item(i, 2).text()))
-        self.axes.scatter(x, y, color='black')
+        circle = ptch.Circle((x, y), radius=5, color='black')
+        self.objects[i].append(circle)
+        self.axes.add_patch(circle)
+
+    def clear_plot(self):
+        i = self.life_table.currentRow()
+        for eve in self.rectangles[i]:
+            eve.set_visible(False)
+        self.canvas.draw()
+
+    def clear_circles(self):
+        i = self.object_table.currentRow()
+        for eve in self.objects[i]:
+            eve.set_visible(False)
+        self.canvas.draw()
+
+    def add_plot(self):
+        i = self.life_table.rowCount()
+        self.life_table.insertRow(i)
+        self.rectangles.append([])
+
+    def add_obj(self):
+        i = self.object_table.rowCount()
+        self.object_table.insertRow(i)
+        type_box = QComboBox()
+        type_box.addItems(['ПВ', 'НС'])
+        self.object_table.setCellWidget(i, 0, type_box)
+        self.objects.append([])
 
 
 app = QApplication([])
