@@ -1,4 +1,4 @@
-class Solution2:
+class QuadraticFunction:
     def __init__(self, x, y):
         self.a = 0
         self.b = 0
@@ -21,15 +21,16 @@ class Solution2:
             self.summ_yx2 += self.x[i]**2 * self.y[i]
         self.koof_matrix = [[len(self.x), self.summ_x, self.summ_x2], [self.summ_x, self.summ_x2, self.summ_x3], [self.summ_x2, self.summ_x3, self.summ_x4]]
         self.free_matrix = [self.summ_y, self.summ_xy, self.summ_yx2]
-        print(self.koof_matrix, self.free_matrix)
+
     def approximate(self):
         submatrix1 = [self.free_matrix, self.koof_matrix[1], self.koof_matrix[2]]
         submatrix2 = [self.koof_matrix[0], self.free_matrix, self.koof_matrix[2]]
         submatrix3 = [self.koof_matrix[0], self.koof_matrix[1], self.free_matrix]
         det = triangle_determinator(self.koof_matrix)
-        self.a = triangle_determinator(submatrix1) / det
-        self.b = triangle_determinator(submatrix2) / det
-        self.c = triangle_determinator(submatrix3) / det
+        self.a = round(triangle_determinator(submatrix1) / det, 4)
+        self.b = round(triangle_determinator(submatrix2) / det, 4)
+        self.c = round(triangle_determinator(submatrix3) / det, 4)
+
         return self.a, self.b, self.c
 
     def __str__(self):
@@ -39,6 +40,10 @@ class Solution2:
     def __len__(self):
         return len(self.free_matrix)
 
+    def __call__(self, x):
+        a, b, c = self.approximate()
+        return a + b * x + c * x**2
+
 
 def triangle_determinator(matrix):
     return matrix[0][0] * matrix[1][1] * matrix[2][2] + matrix[0][1] * matrix[1][2] * matrix[2][0] + matrix[0][2] * matrix[1][0] * matrix[2][1] \
@@ -47,5 +52,4 @@ def triangle_determinator(matrix):
 
 x = [10, 30, 60, 80, 100, 120, 140, 160, 180, 200]
 y = [10, 90.2, 359, 638, 999.9, 1438, 1961, 2562, 3240, 4001]
-sl = Solution2(x, y)
-print(sl)
+sl = QuadraticFunction(x, y)
