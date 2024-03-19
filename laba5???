@@ -1,74 +1,48 @@
-class QuadraticFunction:
+import numpy as np
+import numpy.linalg as lng
+
+
+class PowerFunction:
     def __init__(self, x, y):
         self.a = 0
         self.b = 0
         self.c = 0
+        self.d = 0
         self.x = x
         self.y = y
 
-    def approximate(self):
-        """
-        метод находит коэффициенты аппроксимирующей функции
-        :return: коэффиценты a, b, c
-        """
-        # вычисление коэффицентов матрицы A
-        summ_x = sum(self.x)
-        summ_x2 = 0
-        summ_x3 = 0
-        summ_x4 = 0
-        summ_y = sum(self.y)
-        summ_xy = 0
-        summ_yx2 = 0
-        for x_i in self.x:
-            summ_x2 += x_i ** 2
-            summ_x3 += x_i ** 3
-            summ_x4 += x_i ** 4
-        for i in range(len(self.x)):
-            summ_xy += self.x[i] * self.y[i]
-            summ_yx2 += self.x[i] ** 2 * self.y[i]
-        koof_matrix = [[len(self.x), summ_x, summ_x2], [summ_x, summ_x2, summ_x3],
-                            [summ_x2, summ_x3, summ_x4]]
-        free_matrix = [summ_y, summ_xy, summ_yx2]
-        submatrix1 = [free_matrix, koof_matrix[1], koof_matrix[2]]
-        submatrix2 = [koof_matrix[0], free_matrix, koof_matrix[2]]
-        submatrix3 = [koof_matrix[0], koof_matrix[1], free_matrix]
-        det = triangle_determinator(koof_matrix)
-        self.a = triangle_determinator(submatrix1) / det
-        self.b = triangle_determinator(submatrix2) / det
-        self.c = triangle_determinator(submatrix3) / det
+    def approximate(self, n=2):
+        sums_x = []
+        sums_yx = []
+        matrix = []
+        for i in range(2 * n + 1):
+            summ = 0
+            for count in self.x:
+                summ += count ** i
+            sums_x.append(summ)
+        for j in range(n + 1):
+            sub = []
+            for i in range(j, j + n + 1):
+                sub.append(sums_x[i])
+            matrix.append(sub)
+        for i in range(n + 1):
+            summ = 0
+            for j in range(len(self.x)):
+                summ += self.y[j] * self.x[j] ** i
+            sums_yx.append(summ)
+        return lng.solve(matrix, sums_yx)
 
-        return self.a, self.b, self.c
-
-    def __str__(self):
-
-        a, b, c = self.approximate()
-        a = round(a, 4)
-        b = round(b, 4)
-        c = round(c, 4)
-
-        return f"{a} + {b} * x + {c} * x**2"
-
-    def __len__(self):
-        return len(self.free_matrix)
-
-    def __call__(self, x):
-        a, b, c = self.approximate()
-        return a + b * x + c * x**2
-
-    def residual(self):
-        a, b, c = self.approximate()
-        residual_array = []
-        for i in range(len(self.x)):
-            residual_array.append((self.y[i] - (a + b * self.x[i] + c * self.x[i]**2))**2)
-        return max(residual_array)
+    def __str__(self, n = 2):
+        k = self.approximate(n)
+        string = str(k[0])
+        for i in range(1, len(k)):
+            string += " + " + f"{k[i]} * x**{i}"
+        return string
 
 
-def triangle_determinator(matrix):
-    return matrix[0][0] * matrix[1][1] * matrix[2][2] + matrix[0][1] * matrix[1][2] * matrix[2][0] + matrix[0][2] * matrix[1][0] * matrix[2][1] \
-            - matrix[0][2] * matrix[1][1] * matrix[2][0] - matrix[0][1] * matrix[1][0] * matrix[2][2] - matrix[0][0] * matrix[1][2] * matrix[2][1]
-
-
-x = [10, 30, 60, 80, 100, 120, 140, 160, 180, 200]
-y = [10, 90.2, 359, 638, 999.9, 1438, 1961, 2562, 3240, 4001]
-sl = QuadraticFunction(x, y)
-print(sl.residual())
+x = [1, 1.2, 1.4, 1.7, 2, 2.4, 2.8, 3.2, 3.6, 4]
+y = [1100, 920, 850, 830, 800, 785, 770, 760, 750, 745]
+x1 = [10, 30, 60, 80, 100, 120, 140, 160, 180, 200]
+y1 = [10, 90.2, 359, 638, 999.9, 1438, 1961, 2562, 3240, 4001]
+sl = PowerFunction(x, y)
+print(sl)
