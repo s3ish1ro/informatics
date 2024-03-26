@@ -1,0 +1,60 @@
+from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMainWindow, QPushButton, QFormLayout, QWidget, QComboBox, QMessageBox, QTableWidget)
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5 import QtGui
+from lab5 import PowerFunction
+from icecream import ic
+
+
+class MainWindow(QMainWindow):
+    def __init__(self, parent=None):
+        super(MainWindow, self).__init__(parent)
+
+        self.setWindowTitle('График')
+        self.fig = plt.figure()
+        self.canvas = FigureCanvas(self.fig)
+        self.setGeometry(100, 100, 1060, 520)
+        cental_widget = QWidget()
+        layout = QFormLayout()
+        cental_widget.setLayout(layout)
+        layout.addWidget(self.canvas)
+        plt.grid(True)
+        self.setCentralWidget(cental_widget)
+
+        self.input_table = QTableWidget()
+        self.input_table.setColumnCount(10)
+        self.input_table.setRowCount(2)
+        self.input_table.setVerticalHeaderLabels(['x', 'y'])
+
+        # self.functions = QLineEdit()
+
+        self.function_out = QLabel()
+        self.function_out.setText('Функция: ')
+        self.function_output = QLabel()
+
+        self.approximate_button = QPushButton('Аппроксимация')
+        self.approximate_button.clicked.connect(self.plot_approximate)
+        layout.addWidget(self.input_table)
+        layout.addWidget(self.approximate_button)
+        layout.addWidget(self.function_out)
+        layout.addWidget(self.function_output)
+
+    def plot_approximate(self):
+        user_function = PowerFunction(2)
+        x_vector = [self.input_table.item(0, i).text() for i in range(10) if self.input_table.item(0, i) is not None]
+        y_vector = [self.input_table.item(1, i).text() for i in range(10) if self.input_table.item(0, i) is not None]
+        x_vector = [float(x) for x in x_vector if x.isdigit()]
+        y_vector = [float(y) for y in y_vector if y.isdigit()]
+        user_function.approximate(x_vector, y_vector)
+        plt.plot(x_vector, y_vector, marker='.', linewidth=0)
+        plot_x = np.linspace(x_vector[0], x_vector[-1], 100)
+        plot_y = user_function(plot_x)
+        plt.plot(plot_x, plot_y)
+        self.canvas.draw()
+        self.function_output.setText(str(user_function))
+
+app = QApplication([])
+main = MainWindow()
+main.show()
+app.exec()
