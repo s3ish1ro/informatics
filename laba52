@@ -2,9 +2,7 @@ from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMainWindow, QPush
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from PyQt5 import QtGui
-from lab5 import PowerFunction
-from icecream import ic
+from lab51 import PowerFunction
 
 
 class MainWindow(QMainWindow):
@@ -14,7 +12,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('График')
         self.fig = plt.figure()
         self.canvas = FigureCanvas(self.fig)
-        self.setGeometry(100, 100, 1060, 520)
+        self.setGeometry(100, 100, 1100, 700)
         cental_widget = QWidget()
         layout = QFormLayout()
         cental_widget.setLayout(layout)
@@ -27,32 +25,50 @@ class MainWindow(QMainWindow):
         self.input_table.setRowCount(2)
         self.input_table.setVerticalHeaderLabels(['x', 'y'])
 
-        # self.functions = QLineEdit()
+        self.functions = QComboBox()
+        self.functions.addItems(['степенная', 'экспоненциальная'])
+
+        self.power_text = QLabel()
+        self.power_text.setText('Введите степень функции')
+        self.power = QLineEdit()
+        self.power.setFixedSize(50, 25)
 
         self.function_out = QLabel()
         self.function_out.setText('Функция: ')
         self.function_output = QLabel()
 
+        self.error_message1 = QMessageBox()
+        self.error_message1.setText("Точки функции заданы неверно!")
+        self.error_message1.setWindowTitle('Ошибка!')
+        self.error_message1.setIcon(QMessageBox.Warning)
+
         self.approximate_button = QPushButton('Аппроксимация')
         self.approximate_button.clicked.connect(self.plot_approximate)
+        layout.addRow(self.power_text)
+        layout.addRow(self.power, self.functions)
         layout.addWidget(self.input_table)
         layout.addWidget(self.approximate_button)
         layout.addWidget(self.function_out)
         layout.addWidget(self.function_output)
 
     def plot_approximate(self):
-        user_function = PowerFunction(2)
+        if self.functions.currentText() == 'степенная':
+            user_function = PowerFunction(int(self.power.text()))
         x_vector = [self.input_table.item(0, i).text() for i in range(10) if self.input_table.item(0, i) is not None]
-        y_vector = [self.input_table.item(1, i).text() for i in range(10) if self.input_table.item(0, i) is not None]
+        y_vector = [self.input_table.item(1, i).text() for i in range(10) if self.input_table.item(1, i) is not None]
         x_vector = [float(x) for x in x_vector if x.isdigit()]
         y_vector = [float(y) for y in y_vector if y.isdigit()]
-        user_function.approximate(x_vector, y_vector)
-        plt.plot(x_vector, y_vector, marker='.', linewidth=0)
-        plot_x = np.linspace(x_vector[0], x_vector[-1], 100)
-        plot_y = user_function(plot_x)
-        plt.plot(plot_x, plot_y)
-        self.canvas.draw()
-        self.function_output.setText(str(user_function))
+        if len(x_vector) == len(y_vector):
+            user_function.approximate(x_vector, y_vector)
+            plt.plot(x_vector, y_vector, marker='.', linewidth=0)
+            plot_x = np.linspace(x_vector[0], x_vector[-1], 100)
+            plot_y = user_function(plot_x)
+            plt.plot(plot_x, plot_y)
+            self.canvas.draw()
+            self.function_output.setText(str(user_function))
+        else:
+            self.error_message1.show()
+
 
 app = QApplication([])
 main = MainWindow()
