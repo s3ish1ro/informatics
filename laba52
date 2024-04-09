@@ -1,8 +1,8 @@
-from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMainWindow, QPushButton, QFormLayout, QWidget, QComboBox, QMessageBox, QTableWidget)
+from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMainWindow, QPushButton, QFormLayout, QWidget, QComboBox, QMessageBox, QTableWidget, QTableWidgetItem)
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from lab51 import PowerFunction
+from lab5 import PowerFunction, ExponentialFunction
 
 
 class MainWindow(QMainWindow):
@@ -42,8 +42,14 @@ class MainWindow(QMainWindow):
         self.error_message1.setWindowTitle('Ошибка!')
         self.error_message1.setIcon(QMessageBox.Warning)
 
+        self.error_message2 = QMessageBox()
+        self.error_message2.setText('Степень указана неверно!')
+        self.error_message2.setWindowTitle('Ошибка!')
+        self.error_message2.setIcon(QMessageBox.Warning)
+
         self.approximate_button = QPushButton('Аппроксимация')
         self.approximate_button.clicked.connect(self.plot_approximate)
+
         layout.addRow(self.power_text)
         layout.addRow(self.power, self.functions)
         layout.addWidget(self.input_table)
@@ -52,17 +58,26 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.function_output)
 
     def plot_approximate(self):
+        if not self.power.text().isdigit():
+            self.error_message2.show()
+            return 0
         if self.functions.currentText() == 'степенная':
             user_function = PowerFunction(int(self.power.text()))
+        elif self.functions.currentText() == 'экспоненциальная':
+            user_function = ExponentialFunction(int(self.power.text()))
         x_vector = [self.input_table.item(0, i).text() for i in range(10) if self.input_table.item(0, i) is not None]
         y_vector = [self.input_table.item(1, i).text() for i in range(10) if self.input_table.item(1, i) is not None]
-        x_vector = [float(x) for x in x_vector if x.isdigit()]
-        y_vector = [float(y) for y in y_vector if y.isdigit()]
-        if len(x_vector) == len(y_vector):
+        try:
+            x_vector = [float(x) for x in x_vector]
+            y_vector = [float(y) for y in y_vector]
+        except ValueError:
+            self.error_message1.show()
+
+        if len(x_vector) == len(y_vector) and len(x_vector) >= 3 and len(y_vector) >= 3:
             user_function.approximate(x_vector, y_vector)
             plt.plot(x_vector, y_vector, marker='.', linewidth=0)
             plot_x = np.linspace(x_vector[0], x_vector[-1], 100)
-            plot_y = user_function(plot_x)
+            plot_y = [user_function(x) for x in plot_x]
             plt.plot(plot_x, plot_y)
             self.canvas.draw()
             self.function_output.setText(str(user_function))
