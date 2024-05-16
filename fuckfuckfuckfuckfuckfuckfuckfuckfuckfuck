@@ -1,0 +1,84 @@
+import numpy as np
+import numpy.linalg as lng
+from icecream import ic
+
+class Function:
+    def __init__(self, n=3, k=None):
+        if k is None:
+            k = []
+        self.k = k
+        self.n = n
+        self.x = []
+        self.y = []
+
+    def __del__(self):
+        del self.k
+        del self.n
+        del self.x
+        del self.y
+
+    def __repr__(self):
+        string = str(self.k[0])
+        for element in self.k[1:]:
+            string += f', {element}'
+        return self.n, string
+
+    def __len__(self):
+        return self.n + 1
+
+    def residual(self):
+        get_array = [self.__call__(value) for value in self.x]
+        residual_array = []
+        for i in range(len(self.y)):
+            residual_array.append((get_array[i] - self.y[i])**2)
+        return max(residual_array)
+
+
+class SinusFunction(Function):
+    count = 0
+
+    def __init__(self, n=3, k=None):
+        super().__init__(n, k)
+        SinusFunction.count += 1
+
+    def approximate(self, x, y):
+        self.x = x
+        self.y = y
+        matrix = [[0 for _ in range(self.n)] for _ in range(self.n)]
+        b_matrix = [0 for _ in range(self.n)]
+        for i in range(len(x)):
+            array = [1 if h == 0 else np.sin(h * x[i]) for h in range(self.n)]
+
+            for j in range(len(array)):
+                for k in range(len(array)):
+                    matrix[j][k] += array[k] * array[j]
+
+        for i in range(len(y)):
+            array = [1 if h == 0 else np.sin(h * x[i]) for h in range(self.n)]
+            for j in range(len(array)):
+                b_matrix[j] += array[j] * y[i]
+
+
+        self.k = np.dot(lng.inv(matrix), b_matrix)
+
+
+    def __str__(self):
+        EPS = 10**-4
+        string = str(round(self.k[0], 4)) if self.k[0] > EPS else f"{self.k[0]}"
+        for i in range(1, len(self.k)):
+            string += " + " if self.k[i] >= 0 else " "
+            string += f"{round(self.k[i], 4)} * sin x" if self.k[i] > EPS else f"{round(self.k[i], 10)} * sin x**{i}"
+        return string
+
+    def __call__(self, x):
+        y = self.k[0]
+        for i in range(1, len(self.k)):
+            y += self.k[i] * np.sin(i * x)
+        return round(y, 5)
+
+    def __len__(self):
+        return super().__len__()
+
+    def __del__(self):
+        super().__del__()
+        SinusFunction.count -= 1
