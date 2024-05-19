@@ -1,0 +1,59 @@
+class HyperbolFunction(Function):
+    count = 0
+
+    def __init__(self, n=3, k=None):
+        super().__init__(n, k)
+        HyperbolFunction.count += 1
+
+    def approximate(self, x, y):
+        self.x = x
+        self.y = y
+        sums_x = []
+        sums_yx = []
+        matrix = []
+        for i in range(2 * self.n + 1):
+            summ = 0
+            for count in x:
+                summ += count**(-i)
+            sums_x.append(summ)
+        for j in range(self.n + 1):
+            sub = []
+            for i in range(j, j + self.n + 1):
+                sub.append(sums_x[i])
+            matrix.append(sub)
+
+        for i in range(self.n + 1):
+            summ = 0
+            for j in range(len(x)):
+                summ += y[j] * x[j]**(-i)
+            sums_yx.append(summ)
+        self.k = lng.solve(matrix, sums_yx)
+    def __str__(self):
+        EPS = 10**-4
+        string = str(round(self.k[0], 4)) if self.k[0] > EPS else f"{self.k[0]}"
+        for i in range(1, len(self.k)):
+            string += " + " if self.k[i] >= 0 else " "
+            string += f"{round(self.k[i], 4)} * x**{i}" if self.k[i] > EPS else f"{round(self.k[i], 10)} * x**{i}"
+        return string
+
+    def __call__(self, x):
+        i = 0
+        y = 0
+        for count in self.k:
+            y += count * x ** (-i)
+            i += 1
+        return round(y, 5)
+
+    def __len__(self):
+        return super().__len__()
+
+    def __del__(self):
+        super().__del__()
+        HyperbolFunction.count -= 1
+
+    def __repr__(self):
+        n, string = super().__repr__()
+        return f'HyperbolFunction({n},[{string}])'
+
+    def residual(self):
+        return super().residual()
