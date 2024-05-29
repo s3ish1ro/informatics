@@ -1,3 +1,4 @@
+import random
 from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMainWindow, QPushButton, QFormLayout, QWidget, QTableWidgetItem, QTableWidget, QComboBox)
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,12 +22,14 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(cental_widget)
 
         self.plot_button = QPushButton('Проверить точку')
+        self.plot_button.clicked.connect(self.check2)
 
         self.scatter_label = QLabel('Введите координату точки:')
         self.scatter_start_input = QLineEdit('0')
         self.scatter_end_input = QLineEdit('1')
         self.scatter_start_input.setFixedSize(50, 25)
         self.scatter_end_input.setFixedSize(50, 25)
+
         self.clear_button = QPushButton('Очистить график')
         self.clear_button.clicked.connect(self.clear_plot)
 
@@ -49,6 +52,10 @@ class MainWindow(QMainWindow):
         self.table.setCellWidget(0, 3, self.higherlower)
         self.start_button = QPushButton('Нарисовать кривую')
         self.start_button.clicked.connect(self.plot_data1)
+
+        self.random_button = QPushButton("Случайная точка")
+        self.random_button.clicked.connect(self.random_choice)
+        self.vectors_x = []
         layout.addRow(self.scatter_label)
         layout.addRow(self.scatter_start_input, self.scatter_end_input)
         layout.addRow(self.range_label)
@@ -56,16 +63,31 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.start_button)
         layout.addWidget(self.plot_button)
         layout.addWidget(self.clear_button)
+        layout.addWidget(self.random_button)
         layout.addRow(self.table)
 
-
-    def check1(self, k, n, b):
-        x, y = map(float, [self.scatter_start_input.text(), self.scatter_end_input.text()])
+    def check1(self, x, y, k, n, b, hl):
         k, n, b = map(float, (k, n, b))
-        if self.higherlower.currentText() == 'выше':
+        if hl == 'выше':
             return y >= k * x**n + b
         else:
             return y <= k * x**n + b
+
+    def check2(self):
+        x, y = map(float, [self.scatter_start_input.text(), self.scatter_end_input.text()])
+        count = 0
+        number = len(self.vectors_x)
+        for koofs in self.vectors_x:
+            if self.check1(x, y, koofs[0], koofs[1], koofs[2], koofs[3]):
+                count += 1
+        if count == number:
+            plt.scatter(x, y, color='blue')
+        elif count >= 1:
+            plt.scatter(x, y, color='green')
+        else:
+            plt.scatter(x, y, color='red')
+        self.canvas.draw()
+
     def vectors_line(self):
         k = self.table.item(0, 0).text()
         n = self.table.item(0, 1).text()
@@ -78,7 +100,6 @@ class MainWindow(QMainWindow):
             exec(f'def f(x): return {expression}', functions)
             function = functions['f']
             y = [function(value) for value in x]
-
             return x, y
         except SyntaxError:
             return 0
@@ -86,6 +107,11 @@ class MainWindow(QMainWindow):
             return 0
 
     def plot_data1(self):
+        hl = str(self.table.cellWidget(0, 3).currentText())
+        k = self.table.item(0, 0).text()
+        n = self.table.item(0, 1).text()
+        b = self.table.item(0, 2).text()
+        self.vectors_x.append([k, n, b, hl])
         if self.vectors_line() != 0:
             x, y = self.vectors_line()
             axes = plt.subplot()
@@ -98,7 +124,15 @@ class MainWindow(QMainWindow):
     def clear_plot(self):
         for ax in self.fig.axes:
             ax.clear()
+        self.vectors_x = []
         self.canvas.draw()
+
+    def random_choice(self):
+        a = str(random.uniform(-5, 5))[0:4]
+        b = str(random.uniform(-5, 5))[0:4]
+        self.scatter_start_input.setText(a)
+        self.scatter_end_input.setText(b)
+        self.check2()
 
 app = QApplication([])
 main_window = MainWindow()
