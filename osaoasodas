@@ -1,227 +1,8 @@
-import numpy as np
-import numpy.linalg as lng
-
-
-class Function:
-    def __init__(self, n=3, k=None):
-        if k is None:
-            k = []
-        self.k = k
-        self.n = n
-        self.x = []
-        self.y = []
-
-    def __del__(self):
-        del self.k
-        del self.n
-        del self.x
-        del self.y
-
-    def __repr__(self):
-        string = str(self.k[0])
-        for element in self.k[1:]:
-            string += f', {element}'
-        return self.n, string
-
-    def __len__(self):
-        return self.n + 1
-
-    def residual(self):
-        get_array = [self.__call__(value) for value in self.x]
-        residual_array = []
-        for i in range(len(self.y)):
-            residual_array.append((get_array[i] - self.y[i])**2)
-        return max(residual_array)
-
-
-class LogFunction(Function):
-    count = 0
-
-    def __init__(self, n=3, k=None):
-        super().__init__(n, k)
-        LogFunction.count += 1
-
-    def approximate(self, x, y):
-        self.x = x
-        self.y = y
-        sum_log_x = []
-        sums_ylog_x = []
-        matrix = []
-        for i in range(2 * self.n + 1):
-            summ = 0
-            for count in x:
-                summ += np.log(count)**i
-            sum_log_x.append(summ)
-        for j in range(self.n + 1):
-            sub = []
-            for i in range(j, j + self.n + 1):
-                sub.append(sum_log_x[i])
-            matrix.append(sub)
-
-        for i in range(self.n + 1):
-            summ = 0
-            for j in range(len(x)):
-                summ += y[j] * np.log(x[j])**i
-            sums_ylog_x.append(summ)
-        print(matrix)
-        self.k = lng.solve(matrix, sums_ylog_x)
-
-    def __str__(self):
-        EPS = 10**-4
-        string = str(round(self.k[0], 4)) if self.k[0] > EPS else f"{self.k[0]}"
-        for i in range(1, len(self.k)):
-            string += " + " if self.k[i] >= 0 else " "
-            string += f"{round(self.k[i], 4)} * ln(x)**{i}" if self.k[i] > EPS else f"{round(self.k[i], 10)} * ln(x)**{i}"
-        return string
-
-    def __call__(self, x):
-        i = 0
-        y = 0
-        for count in self.k:
-            y += count * np.log(x)**i
-            i += 1
-        return round(y, 5)
-
-    def __len__(self):
-        return super().__len__()
-
-    def __del__(self):
-        super().__del__()
-        LogFunction.count -= 1
-
-    def __repr__(self):
-        n, string = super().__repr__()
-        return f'LogFunction({n},[{string}])'
-
-    def residual(self):
-        return super().residual()
-
-
-class ExponentialFunction(Function):
-    count = 0
-
-    def __init__(self, n=3, k=None):
-        super().__init__(n, k)
-        ExponentialFunction.count += 1
-
-    def approximate(self, x, y):
-        self.x = x
-        self.y = y
-        sums_x = []
-        sums_yx = []
-        matrix = []
-        for i in range(2 * self.n + 1):
-            summ = 0
-            for count in x:
-                summ += np.e ** (-count * i)
-            sums_x.append(summ)
-        for j in range(self.n + 1):
-            sub = []
-            for i in range(j, j + self.n + 1):
-                sub.append(sums_x[i])
-            matrix.append(sub)
-        for i in range(self.n + 1):
-            summ = 0
-            for j in range(len(x)):
-                summ += y[j] * np.e ** (-x[j] * i)
-            sums_yx.append(summ)
-        self.k = lng.solve(matrix, sums_yx)
-
-    def __str__(self):
-        EPS = 1e-4
-        string = str(round(self.k[0], 4)) if self.k[0] > EPS else f"{self.k[0]}"
-        for i in range(1, len(self.k)):
-            string += " + " if self.k[i] >= 0 else " "
-            string += f"{round(self.k[i], 4)} * e**(-{i}x)" if self.k[i] > EPS else f"{round(self.k[i], 10)} *  e**(-{i}x)"
-        return string
-
-    def __call__(self, x):
-        i = 0
-        y = 0
-        for count in self.k:
-            y += count * np.e**(-x * i)
-            i += 1
-        return round(y, 5)
-
-    def __len__(self):
-        return super().__len__()
-
-    def __del__(self):
-        super().__del__()
-        ExponentialFunction.count -= 1
-
-    def __repr__(self):
-        n, string = super().__repr__()
-        return f'ExponentialFunction({n}, [{string}])'
-
-    def residual(self):
-        return super().residual()
-
-class PowerFunction(Function):
-    count = 0
-
-    def __init__(self, n=3, k=None):
-        super().__init__(n, k)
-        PowerFunction.count += 1
-
-    def approximate(self, x, y):
-        self.x = x
-        self.y = y
-        sums_x = []
-        sums_yx = []
-        matrix = []
-        for i in range(2 * self.n + 1):
-            summ = 0
-            for count in x:
-                summ += count ** i
-            sums_x.append(summ)
-        for j in range(self.n + 1):
-            sub = []
-            for i in range(j, j + self.n + 1):
-                sub.append(sums_x[i])
-            matrix.append(sub)
-        for i in range(self.n + 1):
-            summ = 0
-            for j in range(len(x)):
-                summ += y[j] * x[j] ** i
-            sums_yx.append(summ)
-        self.k = lng.solve(matrix, sums_yx)
-
-    def __str__(self):
-        EPS = 10**-4
-        string = str(round(self.k[0], 4)) if self.k[0] > EPS else f"{self.k[0]}"
-        for i in range(1, len(self.k)):
-            string += " + " if self.k[i] >= 0 else " "
-            string += f"{round(self.k[i], 4)} * x**{i}" if self.k[i] > EPS else f"{round(self.k[i], 10)} * x**{i}"
-        return string
-
-    def __call__(self, x):
-        i = 0
-        y = 0
-        for count in self.k:
-            y += count * x ** i
-            i += 1
-        return round(y, 5)
-
-    def __len__(self):
-        return super().__len__()
-
-    def __del__(self):
-        super().__del__()
-        PowerFunction.count -= 1
-
-    def __repr__(self):
-        n, string = super().__repr__()
-        return f'PowerFunction({n},[{string}])'
-
-    def residual(self):
-        return super().residual()
-
 from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMainWindow, QPushButton, QFormLayout, QWidget, QComboBox, QMessageBox, QTableWidget, QTableWidgetItem)
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-
+from lab2 import PowerFunction, HyperbolFunction
 
 
 class MainWindow(QMainWindow):
@@ -231,7 +12,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('График')
         self.fig = plt.figure()
         self.canvas = FigureCanvas(self.fig)
-        self.setGeometry(0, 0, 1300, 800)
+        self.setGeometry(100, 100, 1000, 1000)
         cental_widget = QWidget()
         layout = QFormLayout()
         cental_widget.setLayout(layout)
@@ -245,7 +26,7 @@ class MainWindow(QMainWindow):
         self.input_table.setVerticalHeaderLabels(['x', 'y'])
 
         self.functions = QComboBox()
-        self.functions.addItems(['логарифмическая', 'экспоненциальная', 'степенная'])
+        self.functions.addItems(['степенная', 'гиперболическая'])
 
         self.power_text = QLabel()
         self.power_text.setText('Введите степень функции')
@@ -269,23 +50,26 @@ class MainWindow(QMainWindow):
         self.approximate_button = QPushButton('Аппроксимация')
         self.approximate_button.clicked.connect(self.plot_approximate)
 
+
+        self.x_widget = QLineEdit()
+        self.x_widget.setFixedWidth(50)
+        self.x_button = QPushButton("Добавить таблицу")
+        self.x_button.clicked.connect(self.add_table)
         layout.addRow(self.power_text)
         layout.addRow(self.power, self.functions)
-        layout.addWidget(self.input_table)
-        layout.addWidget(self.approximate_button)
-        layout.addWidget(self.function_out)
+        layout.addRow(self.input_table)
+        layout.addRow(self.x_button, self.approximate_button)
+        layout.addRow(self.x_widget, self.function_out)
         layout.addWidget(self.function_output)
 
     def plot_approximate(self):
         if not self.power.text().isdigit():
             self.error_message2.show()
             return 0
-        if self.functions.currentText() == 'логарифмическая':
-            user_function = LogFunction(int(self.power.text()))
-        elif self.functions.currentText() == 'экспоненциальная':
-            user_function = ExponentialFunction(int(self.power.text()))
-        elif self.functions.currentText() == 'степенная':
+        if self.functions.currentText() == 'степенная':
             user_function = PowerFunction(int(self.power.text()))
+        elif self.functions.currentText() == 'гиперболическая':
+            user_function = HyperbolFunction(int(self.power.text()))
         x_vector = [self.input_table.item(0, i).text() for i in range(10) if self.input_table.item(0, i) is not None]
         y_vector = [self.input_table.item(1, i).text() for i in range(10) if self.input_table.item(1, i) is not None]
         try:
@@ -305,6 +89,8 @@ class MainWindow(QMainWindow):
         else:
             self.error_message1.show()
 
+    def add_table(self):
+        self.input_table.setColumnCount(int(self.x_widget.text()))
 
 app = QApplication([])
 main = MainWindow()
