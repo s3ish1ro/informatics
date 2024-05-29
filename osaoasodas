@@ -106,15 +106,20 @@ class MainWindow(QMainWindow):
 
         self.answer_label = QLabel('Значение целевой функции равно: ')
         self.answer = QLabel('Параметры целевой функции равны: ')
+
+        self.func_label = QLabel('Целевая функция:')
+        self.func_label2 = QLabel('')
+        self.system_label = QLabel('Система ограничений: ')
+        self.system_label2 = QLabel('')
         layout.addRow(self.k_table_label)
         layout.addRow(self.k_table, self.minmax)
         layout.addRow(self.bounds_label, self.answer_label)
         layout.addRow(self.bounds, self.answer)
-        layout.addRow(self.uneq_table_label)
-        layout.addRow(self.uneq_table)
+        layout.addRow(self.uneq_table_label, self.func_label)
+        layout.addRow(self.uneq_table, self.func_label2)
 
-        layout.addRow(self.eq_table_label)
-        layout.addRow(self.eq_table)
+        layout.addRow(self.eq_table_label, self.system_label)
+        layout.addRow(self.eq_table, self.system_label2)
 
         layout.addRow(self.start_button)
 
@@ -179,6 +184,22 @@ class MainWindow(QMainWindow):
             self.answer.setText(str(task).split('\n')[0])
         else:
             self.answer_label.setText('Система не имеет решений')
+        string1 = ''
+        for i in range(len(target_vector) - 1):
+            string1 += f'{target_vector[i]} * x_{i + 1} +'
+        string1 += f'{target_vector[-1]} * x_{len(target_vector)}'
+        self.func_label2.setText(string1)
+
+        string2 = ''
+        for i in range(len(uneq_vector)):
+            for j in range(len(uneq_vector[i]) - 1):
+                string2 += f'{uneq_vector[i][j]} * x_{j + 1} +'
+            string2 += f'{uneq_vector[i][-1]} * x_{len(uneq_vector[i])}'
+            string2 += f' {self.uneq_table.cellWidget(i, 1).currentText()}'
+            string2 += f' {uneq_value[i]}'
+            string2 += '\n'
+
+        self.system_label2.setText(string2)
 
 app = QApplication([])
 main = MainWindow()
