@@ -1,98 +1,207 @@
-from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMainWindow, QPushButton, QFormLayout, QWidget, QComboBox, QMessageBox, QTableWidget, QTableWidgetItem)
-import numpy as np
+from PyQt5.QtWidgets import (QApplication, QLabel, QMainWindow, QPushButton, QFormLayout, QWidget, QComboBox,
+                             QTableWidget, QTableWidgetItem)
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from lab2 import PowerFunction, HyperbolFunction
+from PyQt5.QtCore import Qt as qt
+from scipy.optimize import linprog
+
+
+class LinProgTask:
+    count = 0
+
+    def __init__(self, target_vector=None):
+        self.vector_x = []
+        if target_vector is None:
+            target_vector = []
+        self.target_vector = target_vector
+        self.target_value = 0
+        LinProgTask.count += 1
+
+    def solve(self, uneq_vector=None, uneq_value=None, eq_vector=None, eq_value=None, x_bounds=None, max=False,
+              method='highs'):
+        if (uneq_value and uneq_vector) or (eq_value and eq_vector):
+            if not max:
+                res = linprog(self.target_vector, A_ub=uneq_vector, b_ub=uneq_value, A_eq=eq_vector, b_eq=eq_value,
+                              bounds=x_bounds, method=method)
+                self.vector_x = res.x
+                self.target_value = res.fun
+
+
+            if max:
+                self.target_vector = [-x for x in self.target_vector]
+                res = linprog(self.target_vector, A_ub=uneq_vector, b_ub=uneq_value, A_eq=eq_vector, b_eq=eq_value,
+                              bounds=x_bounds, method=method)
+
+                self.vector_x = -res.x
+                self.target_value = -res.fun
+        return self.vector_x, self.target_value
+
+    def __str__(self):
+        return f"Вектор неизвестных: {self.vector_x}\nЦелевая функция: {self.target_value}"
+
+    def __del__(self):
+        del self.vector_x
+        del self.target_value
+        del self.target_vector
+        LinProgTask.count -= 1
+
+    def __len__(self):
+        return len(self.vector_x)
 
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
 
-        self.setWindowTitle('График')
+        self.setWindowTitle('Задание 3')
         self.fig = plt.figure()
-        self.canvas = FigureCanvas(self.fig)
-        self.setGeometry(100, 100, 1000, 1000)
+        self.setGeometry(100, 100, 1400, 800)
         cental_widget = QWidget()
         layout = QFormLayout()
         cental_widget.setLayout(layout)
-        layout.addWidget(self.canvas)
         plt.grid(True)
         self.setCentralWidget(cental_widget)
 
-        self.input_table = QTableWidget()
-        self.input_table.setColumnCount(10)
-        self.input_table.setRowCount(2)
-        self.input_table.setVerticalHeaderLabels(['x', 'y'])
+        self.k_table_label = QLabel('Коэффиценты целевой функции')
+        self.k_table = QTableWidget()
+        self.k_table.setRowCount(1)
+        self.k_table.setColumnCount(4)
+        self.k_table.setHorizontalHeaderLabels(['k1', 'k2', 'k3', 'k4'])
+        self.k_table.setFixedSize(530, 90)
 
-        self.functions = QComboBox()
-        self.functions.addItems(['степенная', 'гиперболическая'])
+        self.uneq_table_label = QLabel('Неравенства')
+        self.uneq_table = QTableWidget()
+        self.uneq_table.setRowCount(4)
+        self.uneq_table.setColumnCount(3)
+        self.uneq_table.setHorizontalHeaderLabels(['коэф. неравенства', 'знак', 'значение'])
+        self.uneq_table.resizeColumnToContents(0)
+        self.uneq_table.setFixedSize(420, 180)
+        for i in range(self.uneq_table.rowCount()):
+            widget = QComboBox()
+            widget.addItems(['<=', '>='])
+            self.uneq_table.setCellWidget(i, 1, widget)
 
-        self.power_text = QLabel()
-        self.power_text.setText('Введите степень функции')
-        self.power = QLineEdit()
-        self.power.setFixedSize(50, 25)
+        self.eq_table_label = QLabel('Равенства')
+        self.eq_table = QTableWidget()
+        self.eq_table.setColumnCount(3)
+        self.eq_table.setRowCount(4)
+        self.eq_table.setHorizontalHeaderLabels(['коэф. равенства', '', 'значения'])
+        self.eq_table.resizeColumnToContents(0)
+        self.eq_table.setFixedSize(400, 180)
+        for i in range(self.eq_table.rowCount()):
+            self.eq_table.setItem(i, 1, QTableWidgetItem('='))
+            self.eq_table.item(i, 1).setFlags(qt.ItemFlag.ItemIsEditable)
 
-        self.function_out = QLabel()
-        self.function_out.setText('Функция: ')
-        self.function_output = QLabel()
+        self.start_button = QPushButton('Старт')
+        self.start_button.clicked.connect(self.solve_task)
 
-        self.error_message1 = QMessageBox()
-        self.error_message1.setText("Точки функции заданы неверно!")
-        self.error_message1.setWindowTitle('Ошибка!')
-        self.error_message1.setIcon(QMessageBox.Warning)
+        self.minmax_label = QLabel('Минимум или максимум функции:')
+        self.minmax = QComboBox()
+        self.minmax.addItems(['min', 'max'])
+        self.minmax.setFixedSize(100, 50)
 
-        self.error_message2 = QMessageBox()
-        self.error_message2.setText('Степень указана неверно!')
-        self.error_message2.setWindowTitle('Ошибка!')
-        self.error_message2.setIcon(QMessageBox.Warning)
+        self.bounds_label = QLabel('Границы переменных')
+        self.bounds = QTableWidget()
+        self.bounds.setColumnCount(2)
+        self.bounds.setRowCount(4)
+        self.bounds.setHorizontalHeaderLabels(['Левая', 'Правая'])
+        self.bounds.setVerticalHeaderLabels(['x1', 'x2', 'x3', 'x4'])
+        self.bounds.resizeColumnToContents(0)
+        self.bounds.resizeColumnToContents(1)
+        self.bounds.setFixedSize(150, 200)
 
-        self.approximate_button = QPushButton('Аппроксимация')
-        self.approximate_button.clicked.connect(self.plot_approximate)
+        layout.addRow(self.k_table_label, self.minmax_label)
+        layout.addRow(self.k_table, self.minmax)
+        layout.addRow(self.bounds_label)
+        layout.addRow(self.bounds)
+        layout.addRow(self.uneq_table_label)
+        layout.addRow(self.uneq_table)
 
+        layout.addRow(self.eq_table_label)
+        layout.addRow(self.eq_table)
 
-        self.x_widget = QLineEdit()
-        self.x_widget.setFixedWidth(50)
-        self.x_button = QPushButton("Добавить таблицу")
-        self.x_button.clicked.connect(self.add_table)
-        layout.addRow(self.power_text)
-        layout.addRow(self.power, self.functions)
-        layout.addRow(self.input_table)
-        layout.addRow(self.x_button, self.approximate_button)
-        layout.addRow(self.x_widget, self.function_out)
-        layout.addWidget(self.function_output)
+        self.x_table_label = QLabel('Полученные значения:')
+        self.x_table = QTableWidget()
+        self.x_table.setRowCount(1)
+        self.x_table.setColumnCount(2)
+        self.x_table.setHorizontalHeaderLabels(['параметры функции', 'значение функции'])
+        self.x_table.resizeColumnToContents(0)
+        self.x_table.resizeColumnToContents(1)
+        self.x_table.setFixedSize(530, 70)
+        layout.addRow(self.x_table_label)
+        layout.addRow(self.x_table)
 
-    def plot_approximate(self):
-        if not self.power.text().isdigit():
-            self.error_message2.show()
-            return 0
-        if self.functions.currentText() == 'степенная':
-            user_function = PowerFunction(int(self.power.text()))
-        elif self.functions.currentText() == 'гиперболическая':
-            user_function = HyperbolFunction(int(self.power.text()))
-        x_vector = [self.input_table.item(0, i).text() for i in range(10) if self.input_table.item(0, i) is not None]
-        y_vector = [self.input_table.item(1, i).text() for i in range(10) if self.input_table.item(1, i) is not None]
-        try:
-            x_vector = [float(x) for x in x_vector]
-            y_vector = [float(y) for y in y_vector]
-        except ValueError:
-            self.error_message1.show()
+        layout.addRow(self.start_button)
 
-        if len(x_vector) == len(y_vector) and len(x_vector) >= 3 and len(y_vector) >= 3:
-            user_function.approximate(x_vector, y_vector)
-            plt.plot(x_vector, y_vector, marker='.', linewidth=0)
-            plot_x = np.linspace(x_vector[0], x_vector[-1], 100)
-            plot_y = [user_function(x) for x in plot_x]
-            plt.plot(plot_x, plot_y)
-            self.canvas.draw()
-            self.function_output.setText(str(user_function))
+    def solve_task(self):
+        target_vector = []
+        for i in range(self.k_table.columnCount()):
+            if self.k_table.item(0, i) is not None:
+                if self.k_table.item(0, i).text() != '':
+                    target_vector.append(float(self.k_table.item(0, i).text()))
+        task = LinProgTask(target_vector)
+        uneq_vector = []
+        uneq_value = []
+        for i in range(self.uneq_table.rowCount()):
+            if self.uneq_table.item(i, 0) is not None and self.uneq_table.item(i, 2) is not None:
+                k_uneq_vector = list(map(float, self.uneq_table.item(i, 0).text().split(',')))
+                if self.uneq_table.cellWidget(i, 1).currentText() == '<=':
+                    uneq_vector.append(k_uneq_vector)
+                    uneq_value.append(float(self.uneq_table.item(i, 2).text()))
+                else:
+                    uneq_vector.append([-x for x in k_uneq_vector])
+                    uneq_value.append(-float(self.uneq_table.item(i, 2).text()))
+
+        eq_vector = []
+        eq_value = []
+        for i in range(self.eq_table.rowCount()):
+            if self.eq_table.item(i, 0) is not None and self.eq_table.item(i, 2) is not None:
+                k_eq_vector = list(map(float, self.eq_table.item(i, 0).text().split(',')))
+                eq_vector.append(k_eq_vector)
+                eq_value.append(float(self.eq_table.item(i, 2).text()))
+        x_bounds = []
+        for i in range(self.bounds.rowCount()):
+            if self.bounds.item(i, 0) is not None and self.bounds.item(i, 1) is not None:
+                try:
+                    x_bounds.append((float(self.bounds.item(i, 0).text()),
+                                     float(self.bounds.item(i, 1).text())))
+                except ValueError:
+                    if self.bounds.item(i, 0).text() == '' or self.bounds.item(i, 0).text() == 'None':
+                        x_bounds.append((float(self.bounds.item(i, 0).text()),
+                                         None))
+                    elif self.bounds.item(i, 1).text() == '' or self.bounds.item(i, 1).text() == 'None':
+                        x_bounds.append((None, float(self.bounds.item(i, 1).text())))
+
+        if len(x_bounds) != len(target_vector):
+            if len(x_bounds) < len(target_vector):
+                while len(x_bounds) != len(target_vector):
+                    x_bounds.append((None, None))
+            elif len(x_bounds) > len(target_vector):
+                x_bounds = [(None, None) for _ in range(len(target_vector))]
+        if len(eq_vector) == 0 or len(eq_value) == 0:
+            eq_vector = None
+            eq_value = None
+        if len(uneq_vector) == 0 or len(uneq_value) == 0:
+            uneq_vector = None
+            uneq_value = None
+
+        if self.minmax.currentText() == 'min':
+            a = task.solve(uneq_vector, uneq_value, eq_vector, eq_value, x_bounds=x_bounds, max=True)
+            b, c = a[0], a[1]
+            self.x_table.setItem(0, 1, QTableWidgetItem(str(c)))
+            self.x_table.setItem(0, 0, QTableWidgetItem(str(b)))
+            self.x_table.resizeColumnToContents(0)
         else:
-            self.error_message1.show()
+            a = task.solve(uneq_vector, uneq_value, eq_vector, eq_value, x_bounds=x_bounds, max=True)
+            b, c = a[0], a[1]
+            self.x_table.setItem(0, 1, QTableWidgetItem(str(c)))
+            self.x_table.setItem(0, 0, QTableWidgetItem(str(b)))
+            self.x_table.resizeColumnToContents(0)
 
-    def add_table(self):
-        self.input_table.setColumnCount(int(self.x_widget.text()))
+
+
 
 app = QApplication([])
 main = MainWindow()
 main.show()
 app.exec()
+
