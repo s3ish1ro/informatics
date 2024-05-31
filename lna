@@ -198,22 +198,6 @@ class MainWindow(QMainWindow):
             self.eq_table.setItem(i, 0, QTableWidgetItem(None))
             self.eq_table.setItem(i, 2, QTableWidgetItem(None))
 
-        # string1 = ''
-        # for i in range(len(target_vector) - 1):
-        #     string1 += f'{target_vector[i]} * x_{i + 1} +'
-        # string1 += f'{target_vector[-1]} * x_{len(target_vector)}'
-        # self.func_label2.setText(string1)
-        #
-        # string2 = ''
-        # for i in range(len(uneq_vector)):
-        #     for j in range(len(uneq_vector[i]) - 1):
-        #         string2 += f'{uneq_vector[i][j]} * x_{j + 1} +'
-        #     string2 += f'{uneq_vector[i][-1]} * x_{len(uneq_vector[i])}'
-        #     string2 += f' {self.uneq_table.cellWidget(i, 1).currentText()}'
-        #     string2 += f' {uneq_value[i]}'
-        #     string2 += '\n'
-        #
-        # self.system_label2.setText(string2)
 
 app = QApplication([])
 main = MainWindow()
