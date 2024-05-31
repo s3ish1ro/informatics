@@ -1,219 +1,246 @@
-from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QPushButton, QFormLayout, QWidget, QComboBox, QTableWidget, QTableWidgetItem, QHeaderView, QGridLayout, QVBoxLayout
+import numpy.linalg as lng
+import numpy as np
 import matplotlib.pyplot as plt
-from PyQt5.QtCore import Qt as qt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMainWindow, QPushButton, QFormLayout, QWidget, QComboBox, QMessageBox, QTableWidget, QTableWidgetItem)
 
-from scipy.optimize import linprog
 
-class LinProgTask:
-    count = 0
-
-    def __init__(self, target_vector=None):
-        self.vector_x = []
-        
-        if target_vector is None:
-            target_vector = []
-            
-        self.target_vector = target_vector
-        self.target_value = 0
-        
-        LinProgTask.count += 1
-
-    def solve(self, uneq_vector=None, uneq_value=None, eq_vector=None, eq_value=None, x_bounds=None, max=False, method='highs'):
-        if (uneq_value and uneq_vector) or (eq_value and eq_vector):
-            if not max:
-                res = linprog(self.target_vector, A_ub=uneq_vector, b_ub=uneq_value, A_eq=eq_vector, b_eq=eq_value, bounds=x_bounds, method=method)
-                self.vector_x = res.x
-                self.target_value = res.fun
-
-            if max:
-                self.target_vector = [-x for x in self.target_vector]
-                res = linprog(self.target_vector, A_ub=uneq_vector, b_ub=uneq_value, A_eq=eq_vector, b_eq=eq_value, bounds=x_bounds, method=method)
-                self.vector_x = -res.x
-                self.target_value = -res.fun
-
-    def __str__(self):
-        for index_x in range(len(self.vector_x)):
-            self.vector_x[index_x] = round(self.vector_x[index_x], 4)
-        
-        return f"Параметры: {self.vector_x}\nЦелевая функция: {round(self.target_value, 4)}"
+class Function:
+    def __init__(self, n=3, k=None):
+        if k is None:
+            k = []
+        self.k = k
+        self.n = n
+        self.x = []
+        self.y = []
 
     def __del__(self):
-        del self.vector_x
-        del self.target_value
-        del self.target_vector
-        
-        LinProgTask.count -= 1
+        del self.k
+        del self.n
+        del self.x
+        del self.y
+
+    def __repr__(self):
+        string = str(self.k[0])
+        for element in self.k[1:]:
+            string += f', {element}'
+        return self.n, string
 
     def __len__(self):
-        return len(self.vector_x)
+        return self.n + 1
+
+    def residual(self):
+        get_array = [self.__call__(value) for value in self.x]
+        residual_array = []
+        for i in range(len(self.y)):
+            residual_array.append((get_array[i] - self.y[i])**2)
+        return max(residual_array)
+
+class PowerFunction(Function):
+    count = 0
+
+    def __init__(self, n=3, k=None):
+        super().__init__(n, k)
+        PowerFunction.count += 1
+
+    def approximate(self, x, y):
+        self.x = x
+        self.y = y
+        sums_x = []
+        sums_yx = []
+        matrix = []
+        for i in range(2 * self.n + 1):
+            summ = 0
+            for count in x:
+                summ += count ** i
+            sums_x.append(summ)
+        for j in range(self.n + 1):
+            sub = []
+            for i in range(j, j + self.n + 1):
+                sub.append(sums_x[i])
+            matrix.append(sub)
+
+        for i in range(self.n + 1):
+            summ = 0
+            for j in range(len(x)):
+                summ += y[j] * x[j] ** i
+            sums_yx.append(summ)
+        self.k = lng.solve(matrix, sums_yx)
+
+    def __str__(self):
+        EPS = 10**-4
+        string = str(round(self.k[0], 4)) if self.k[0] > EPS else f"{self.k[0]}"
+        for i in range(1, len(self.k)):
+            string += " + " if self.k[i] >= 0 else " "
+            string += f"{round(self.k[i], 4)} * x**{i}" if self.k[i] > EPS else f"{round(self.k[i], 10)} * x**{i}"
+        return string
+
+    def __call__(self, x):
+        i = 0
+        y = 0
+        for count in self.k:
+            y += count * x ** i
+            i += 1
+        return round(y, 5)
+
+    def __len__(self):
+        return super().__len__()
+
+    def __del__(self):
+        super().__del__()
+        PowerFunction.count -= 1
+
+    def __repr__(self):
+        n, string = super().__repr__()
+        return f'PowerFunction({n},[{string}])'
+
+    def residual(self):
+        return super().residual()
+
+class LogFunction(Function):
+    count = 0
+
+    def __init__(self, n=3, k=None):
+        super().__init__(n, k)
+        LogFunction.count += 1
+
+    def approximate(self, x, y):
+        self.x = x
+        self.y = y
+        sum_log_x = []
+        sums_ylog_x = []
+        matrix = []
+        for i in range(2 * self.n + 1):
+            summ = 0
+            for count in x:
+                summ += np.log(count)**i
+            sum_log_x.append(summ)
+        for j in range(self.n + 1):
+            sub = []
+            for i in range(j, j + self.n + 1):
+                sub.append(sum_log_x[i])
+            matrix.append(sub)
+
+        for i in range(self.n + 1):
+            summ = 0
+            for j in range(len(x)):
+                summ += y[j] * np.log(x[j])**i
+            sums_ylog_x.append(summ)
+        self.k = lng.solve(matrix, sums_ylog_x)
+
+    def __str__(self):
+        EPS = 10**-4
+        string = str(round(self.k[0], 4)) if self.k[0] > EPS else f"{self.k[0]}"
+        for i in range(1, len(self.k)):
+            string += " + " if self.k[i] >= 0 else " "
+            string += f"{round(self.k[i], 4)} * ln(x)**{i}" if self.k[i] > EPS else f"{round(self.k[i], 10)} * ln(x)**{i}"
+        return string
+
+    def __call__(self, x):
+        i = 0
+        y = 0
+        for count in self.k:
+            y += count * np.log(x)**i
+            i += 1
+        return round(y, 5)
+
+    def __len__(self):
+        return super().__len__()
+
+    def __del__(self):
+        super().__del__()
+        LogFunction.count -= 1
+
+    def __repr__(self):
+        n, string = super().__repr__()
+        return f'LogFunction({n},[{string}])'
+
+    def residual(self):
+        return super().residual()
+
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
 
-        # Объявление главного окна
-        self.setWindowTitle('Задание 3')
+        self.setWindowTitle('График')
         self.fig = plt.figure()
-        self.setGeometry(100, 100, 500, 450)
+        self.canvas = FigureCanvas(self.fig)
+        self.setGeometry(0, 0, 1300, 800)
         cental_widget = QWidget()
-        layout = QGridLayout()
+        layout = QFormLayout()
         cental_widget.setLayout(layout)
+        layout.addWidget(self.canvas)
+        plt.grid(True)
         self.setCentralWidget(cental_widget)
 
-        # Объявление таблицы коэффициентов
-        self.coefficients_table_label = QLabel('Коэффиценты целевой функции') # Задаем название таблицы
-        self.coefficients_table = QTableWidget(1, 4) # Задаем таблицу и количество строк/столбцов
-        self.coefficients_table.setHorizontalHeaderLabels(['x1', 'x2', 'x3', 'x4']) # Задаем подписи к таблице
-        self.coefficients_table.horizontalHeader().setDefaultSectionSize(30) # Задаем фиксированную ширину столбца
-        self.coefficients_table.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed) # Задаем, что ширина не меняется
-        self.coefficients_table.setFixedSize(173, 50) # Задаем фиксированный размер для всей таблицы
-        self.coefficients_table.setItem(0, 0, QTableWidgetItem('8'))
-        self.coefficients_table.setItem(0, 1, QTableWidgetItem('-14'))
-        # Объъявление таблицы неравенств
-        self.unequal_table_label = QLabel('Неравенства') # Задаем название таблицы
-        self.unequal_table = QTableWidget(4, 3) # Задаем таблицу и количество строк/столбцов
-        self.unequal_table.setHorizontalHeaderLabels(['коэф', 'знак', 'значение']) # Задаем подписи к таблице
-        self.unequal_table.horizontalHeader().setDefaultSectionSize(70) # Задаем фиксированную ширину столбца
-        self.unequal_table.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed) # Задаем, что ширина не меняется
-        self.unequal_table.setFixedSize(227, 145) # Задаем фиксированный размер для всей таблицы
-        for row_index in range(self.unequal_table.rowCount()):
-            combo_box = QComboBox()
-            combo_box.addItems(['<=', '>='])
-            self.unequal_table.setCellWidget(row_index, 1, combo_box) # Задаем combo_box для второй ячейки таблицы (для каждой строки)
-        self.unequal_table.setItem(0, 0, QTableWidgetItem('-2, 1'))
-        self.unequal_table.setItem(1, 0, QTableWidgetItem('-1, 4'))
-        self.unequal_table.setItem(2, 0, QTableWidgetItem('5, 2'))
-        self.unequal_table.setItem(0, 2, QTableWidgetItem('3'))
-        self.unequal_table.setItem(1, 2, QTableWidgetItem('8'))
-        self.unequal_table.setItem(2, 2, QTableWidgetItem('28'))
+        self.input_table = QTableWidget()
+        self.input_table.setColumnCount(10)
+        self.input_table.setRowCount(2)
+        self.input_table.setVerticalHeaderLabels(['x', 'y'])
 
-        # Объявление таблицы равенств
-        self.equal_table_label = QLabel('Равенства') # Задаем название таблицы
-        self.equal_table = QTableWidget(4, 3) # Задаем таблицу и количество строк/столбцов
-        self.equal_table.setHorizontalHeaderLabels(['коэф', 'знак', 'значения']) # Задаем подписи к таблице
-        self.equal_table.horizontalHeader().setDefaultSectionSize(70) # Задаем фиксированную ширину столбца
-        self.equal_table.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed) # Задаем, что ширина не меняется
-        self.equal_table.setFixedSize(227, 145) # Задаем фиксированный размер для всей таблицы
-        for row_index in range(self.equal_table.rowCount()):
-            self.equal_table.setItem(row_index, 1, QTableWidgetItem('=')) # Задаем = для второй ячейки таблицы (для каждой строки)
-            self.equal_table.item(row_index, 1).setFlags(qt.ItemFlag.ItemIsEditable) # Задаем, что поле не изменяемое
+        self.functions = QComboBox()
+        self.functions.addItems(['логарифмическая', 'степенная'])
 
-        # Объявляение кнопки запуска
-        self.start_button = QPushButton('Запуск') # Задаем кнопку и текст в ней
-        self.start_button.clicked.connect(self.calc) # Задаем функцию, которую необходимо выполнить
+        self.power_text = QLabel()
+        self.power_text.setText('Введите степень функции')
+        self.power = QLineEdit()
+        self.power.setFixedSize(50, 25)
 
-        # Объявление выбора min/max
-        self.minmax = QComboBox() # Задаем combo_box
-        self.minmax.addItems(['min', 'max']) # Задаем для него значения
-        self.minmax.setFixedSize(50, 25) # Задаем ему фиксированный размер
+        self.function_out = QLabel()
+        self.function_out.setText('Функция: ')
+        self.function_output = QLabel()
 
-        # Объявление таблицы с границами переменных
-        self.bounds_label = QLabel('Границы переменных') # Задаем название таблицы
-        self.bounds = QTableWidget(4, 2) # Задаем таблицу и количество строк/столбцов
-        self.bounds.setHorizontalHeaderLabels(['левая граница', 'правая граница']) # Задаем подписи к таблице (столбцы)
-        self.bounds.setVerticalHeaderLabels(['x1', 'x2', 'x3', 'x4']) # Задаем подписи к таблице (строки)
-        self.bounds.horizontalHeader().setDefaultSectionSize(101) # Задаем фиксированную ширину столбца
-        self.bounds.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed) # Задаем, что ширина не меняется
-        self.bounds.setFixedSize(227, 145) # Задаем фиксированный размер для всей таблицы
+        self.error_message1 = QMessageBox()
+        self.error_message1.setText("Точки функции заданы неверно!")
+        self.error_message1.setWindowTitle('Ошибка!')
+        self.error_message1.setIcon(QMessageBox.Warning)
 
-        # Объявление полей для ответов
-        self.answer_label = QLabel('Целевая функция: ')
-        self.answer = QLabel('Параметры: ')
+        self.error_message2 = QMessageBox()
+        self.error_message2.setText('Степень указана неверно!')
+        self.error_message2.setWindowTitle('Ошибка!')
+        self.error_message2.setIcon(QMessageBox.Warning)
 
-        self.clearing_button = QPushButton('Очистка')
-        self.clearing_button.clicked.connect(self.clearing)
-        layout.addWidget(self.coefficients_table_label, 0, 0, 1, 2)
-        layout.addWidget(self.coefficients_table, 1, 0, 1, 2, qt.AlignmentFlag.AlignTop)
+        self.approximate_button = QPushButton('Аппроксимация')
+        self.approximate_button.clicked.connect(self.plot_approximate)
 
-        layout.addWidget(self.bounds_label, 0, 2, 1, 2)
-        layout.addWidget(self.bounds, 1, 2, 1, 2)
+        layout.addRow(self.power_text)
+        layout.addRow(self.power, self.functions)
+        layout.addWidget(self.input_table)
+        layout.addWidget(self.approximate_button)
+        layout.addWidget(self.function_out)
+        layout.addWidget(self.function_output)
 
-        layout.addWidget(self.unequal_table_label, 2, 0, 1, 2)
-        layout.addWidget(self.unequal_table, 3, 0, 1, 2)
+    def plot_approximate(self):
+        if not self.power.text().isdigit():
+            self.error_message2.show()
+            return 0
+        if self.functions.currentText() == 'степенная':
+            user_function = PowerFunction(int(self.power.text()))
+        elif self.functions.currentText() == 'логарифмическая':
+            user_function = LogFunction(int(self.power.text()))
+        x_vector = [self.input_table.item(0, i).text() for i in range(10) if self.input_table.item(0, i) is not None]
+        y_vector = [self.input_table.item(1, i).text() for i in range(10) if self.input_table.item(1, i) is not None]
+        try:
+            x_vector = [float(x) for x in x_vector]
+            y_vector = [float(y) for y in y_vector]
+        except ValueError:
+            self.error_message1.show()
 
-        layout.addWidget(self.equal_table_label, 2, 2, 1, 2)
-        layout.addWidget(self.equal_table, 3, 2, 1, 2)
-
-        layout.addWidget(self.minmax, 4, 0)
-        layout.addWidget(self.start_button, 5, 0)
-
-        layout.addWidget(self.answer_label, 4, 2)
-        layout.addWidget(self.answer, 5, 2)
-        layout.addWidget(self.clearing_button)
-    def calc(self):
-        target_vector = []
-        for column_index in range(self.coefficients_table.columnCount()):
-            if self.coefficients_table.item(0, column_index) is not None:
-                if self.coefficients_table.item(0, column_index).text() != '':
-                    target_vector.append(float(self.coefficients_table.item(0, column_index).text()))
-                    
-        task = LinProgTask(target_vector)
-        unequal_vector = []
-        unequal_value = []
-        for row_index in range(self.unequal_table.rowCount()):
-            if self.unequal_table.item(row_index, 0) is not None and self.unequal_table.item(row_index, 2) is not None:
-                k_unequal_vector = list(map(float, self.unequal_table.item(row_index, 0).text().split(',')))
-                if self.unequal_table.cellWidget(row_index, 1).currentText() == '<=':
-                    unequal_vector.append(k_unequal_vector)
-                    unequal_value.append(float(self.unequal_table.item(row_index, 2).text()))
-                else:
-                    unequal_vector.append([-x for x in k_unequal_vector])
-                    unequal_value.append(-float(self.unequal_table.item(row_index, 2).text()))
-
-        equal_vector = []
-        equal_value = []
-        for row_index in range(self.equal_table.rowCount()):
-            if self.equal_table.item(row_index, 0) is not None and self.equal_table.item(row_index, 2) is not None:
-                k_equal_vector = list(map(float, self.equal_table.item(row_index, 0).text().split(',')))
-                equal_vector.append(k_equal_vector)
-                equal_value.append(float(self.equal_table.item(row_index, 2).text()))
-        
-        x_bounds = []
-        for row_index in range(self.bounds.rowCount()):
-            if self.bounds.item(row_index, 0) is not None and self.bounds.item(row_index, 1) is not None:
-                try:
-                    x_bounds.append((float(self.bounds.item(row_index, 0).text()),
-                                    float(self.bounds.item(row_index, 1).text())))
-                except ValueError:
-                    if self.bounds.item(row_index, 0).text() == '' or self.bounds.item(row_index, 0).text() == 'None':
-                        x_bounds.append((float(self.bounds.item(row_index, 0).text()), None))
-                    elif self.bounds.item(row_index, 1).text() == '' or self.bounds.item(row_index, 1).text() == 'None':
-                        x_bounds.append((None, float(self.bounds.item(row_index, 1).text())))
-        
-        if len(x_bounds) != len(target_vector):
-            if len(x_bounds) < len(target_vector):
-                while len(x_bounds) != len(target_vector):
-                    x_bounds.append((None, None))
-            elif len(x_bounds) > len(target_vector):
-                x_bounds = [(None, None) for _ in range(len(target_vector))]
-        
-        if len(equal_vector) == 0 or len(equal_value) == 0:
-            equal_vector = None
-            equal_value = None
-            
-        if len(unequal_vector) == 0 or len(unequal_value) == 0:
-            unequal_vector = None
-            unequal_value = None
-
-        if self.minmax.currentText() == 'min':
-            task.solve(unequal_vector, unequal_value, equal_vector, equal_value, x_bounds=x_bounds)
+        if len(x_vector) == len(y_vector) and len(x_vector) >= 3 and len(y_vector) >= 3:
+            user_function.approximate(x_vector, y_vector)
+            plt.plot(x_vector, y_vector, marker='.', linewidth=0)
+            plot_x = np.linspace(x_vector[0], x_vector[-1], 100)
+            plot_y = [user_function(x) for x in plot_x]
+            plt.plot(plot_x, plot_y)
+            self.canvas.draw()
+            self.function_output.setText(str(user_function))
         else:
-            task.solve(unequal_vector, unequal_value, equal_vector, equal_value, x_bounds=x_bounds, max=True)
-            
-        self.answer_label.setText(str(task).split('\n')[1])
-        self.answer.setText(str(task).split('\n')[0])
+            self.error_message1.show()
 
-    def clearing(self):
-        for i in range(self.coefficients_table.columnCount()):
-            self.coefficients_table.setItem(0, i, QTableWidgetItem(None))
-        for i in range(self.unequal_table.rowCount()):
-            self.unequal_table.setItem(i, 0, QTableWidgetItem(None))
-            self.unequal_table.setItem(i, 2, QTableWidgetItem(None))
 
 
 app = QApplication([])
 main = MainWindow()
 main.show()
 app.exec()
-
-
