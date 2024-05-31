@@ -5,6 +5,9 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMainWindow, QPushButton, QFormLayout, QWidget, QComboBox, QMessageBox, QTableWidget, QTableWidgetItem)
 
 
+x_1 = [1100, 1200, 1300, 1500, 1700, 1800, 2000, 2400, 2700, 2900]
+y_1 = [369, 357, 324, 293, 245, 233, 202, 162, 151, 152]
+
 class Function:
     def __init__(self, n=3, k=None):
         if k is None:
@@ -204,6 +207,10 @@ class MainWindow(QMainWindow):
         self.approximate_button = QPushButton('Аппроксимация')
         self.approximate_button.clicked.connect(self.plot_approximate)
 
+        for i in range(len(x_1)):
+            self.input_table.setItem(0, i, QTableWidgetItem(str(x_1[i])))
+            self.input_table.setItem(1, i, QTableWidgetItem(str(y_1[i])))
+        self.power.setText('5')
         layout.addRow(self.power_text)
         layout.addRow(self.power, self.functions)
         layout.addWidget(self.input_table)
