@@ -28,8 +28,12 @@ class LinProgTask:
                 self.target_vector = [-x for x in self.target_vector]
                 res = linprog(self.target_vector, A_ub=uneq_vector, b_ub=uneq_value, A_eq=eq_vector, b_eq=eq_value,
                               bounds=x_bounds, method=method)
-                self.vector_x = -res.x
-                self.target_value = -res.fun
+                try:
+                    self.vector_x = -res.x
+                    self.target_value = -res.fun
+                except res.x is None:
+                    self.vector_x = None
+                    self.target_value = None
 
     def __str__(self):
         return f"Параметры целевой функции равны: {self.vector_x}\nЗначение целевой функции равно: {self.target_value}"
@@ -193,6 +197,23 @@ class MainWindow(QMainWindow):
         for i in range(self.eq_table.rowCount()):
             self.eq_table.setItem(i, 0, QTableWidgetItem(None))
             self.eq_table.setItem(i, 2, QTableWidgetItem(None))
+
+        # string1 = ''
+        # for i in range(len(target_vector) - 1):
+        #     string1 += f'{target_vector[i]} * x_{i + 1} +'
+        # string1 += f'{target_vector[-1]} * x_{len(target_vector)}'
+        # self.func_label2.setText(string1)
+        #
+        # string2 = ''
+        # for i in range(len(uneq_vector)):
+        #     for j in range(len(uneq_vector[i]) - 1):
+        #         string2 += f'{uneq_vector[i][j]} * x_{j + 1} +'
+        #     string2 += f'{uneq_vector[i][-1]} * x_{len(uneq_vector[i])}'
+        #     string2 += f' {self.uneq_table.cellWidget(i, 1).currentText()}'
+        #     string2 += f' {uneq_value[i]}'
+        #     string2 += '\n'
+        #
+        # self.system_label2.setText(string2)
 
 app = QApplication([])
 main = MainWindow()
