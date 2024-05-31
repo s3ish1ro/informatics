@@ -178,30 +178,21 @@ class MainWindow(QMainWindow):
         else:
             task.solve(uneq_vector, uneq_value, eq_vector, eq_value, x_bounds=x_bounds, max=True)
         if 'None' not in (str(task).split('\n')[1]):
-            self.answer_message.setText(str(task))
-            self.answer_message.show()
+            self.answer.setText(str(task).split('\n')[0])
+            self.answer_label.setText(str(task).split('\n')[1])
         else:
-            self.answer_message.setText('Система не имеет решений')
-            self.answer_message.show()
+            self.answer_label.setText('Система не имеет решений')
+            self.clearing()
 
-
-
-        # string1 = ''
-        # for i in range(len(target_vector) - 1):
-        #     string1 += f'{target_vector[i]} * x_{i + 1} +'
-        # string1 += f'{target_vector[-1]} * x_{len(target_vector)}'
-        # self.func_label2.setText(string1)
-        #
-        # string2 = ''
-        # for i in range(len(uneq_vector)):
-        #     for j in range(len(uneq_vector[i]) - 1):
-        #         string2 += f'{uneq_vector[i][j]} * x_{j + 1} +'
-        #     string2 += f'{uneq_vector[i][-1]} * x_{len(uneq_vector[i])}'
-        #     string2 += f' {self.uneq_table.cellWidget(i, 1).currentText()}'
-        #     string2 += f' {uneq_value[i]}'
-        #     string2 += '\n'
-        #
-        # self.system_label2.setText(string2)
+    def clearing(self):
+        for i in range(self.k_table.columnCount()):
+            self.k_table.setItem(0, i, QTableWidgetItem(None))
+        for i in range(self.uneq_table.rowCount()):
+            self.uneq_table.setItem(i, 0, QTableWidgetItem(None))
+            self.uneq_table.setItem(i, 2, QTableWidgetItem(None))
+        for i in range(self.eq_table.rowCount()):
+            self.eq_table.setItem(i, 0, QTableWidgetItem(None))
+            self.eq_table.setItem(i, 2, QTableWidgetItem(None))
 
 app = QApplication([])
 main = MainWindow()
