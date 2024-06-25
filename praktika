@@ -1,0 +1,14 @@
+hold on
+axis equal
+[X,Y,Z] = sphere;
+r = 4;
+h = 10;
+X2 = X * r;
+Y2 = Y * r;
+Z2 = Z * r;
+[X3, Y3, Z3] = cylinder(r);
+Z3 = Z3 * h;
+surf(X3, Y3, Z3 + 2)
+surf(X2 + 4, Y2, Z2)
+surf(X2 - 4, Y2, Z2)
+surf(X2, Y2, Z2 + 12)
