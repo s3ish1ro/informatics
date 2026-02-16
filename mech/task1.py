@@ -49,9 +49,14 @@ for _ in range(4):
     nc.append((n_left, n_right, n_mid, n_d2))
     g.append((g_left, g_right, g_mid, g_d2))
     n *= 2
-
+print("Невязка Чебышева:")
 for i in range(len(nc)):
-    print(*nc[i])
-print("\n")
+    for j in range(len(nc[i])):
+        print(f'{nc[i][j]:.4e}', end=" ")
+    print('\n')
+print("Невязка Гилберта:")
 for i in range(len(g)):
-    print(*np.sqrt(g[i]))
+    for j in range(len(g[i])):
+        print(f'{g[i][j]:.4e}', end=" ")
+    print('\n')
+
