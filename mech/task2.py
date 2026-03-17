@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
+#извиняюсь перед никитой за ОЧЕВИДНО
 
 def f(x):
     return x
