@@ -1,0 +1,41 @@
+from html.entities import html5
+
+import numpy as np
+
+
+def f(t, x):
+    return t * np.sin(x)
+k = 45
+p = 7900
+c = 460
+a = np.sqrt(k/(p * c))
+l = 5
+nx = 40
+hx = l/nx
+x0 = np.linspace(0, l, nx + 1)
+sigma = 0
+T0 = 10
+ht = hx/(2 - 4 * sigma) * 0.5
+t0 = np.arange(0, T0 + ht, ht)
+U = np.zeros((len(x0), len(t0)))
+xi = x0/l
+tj = t0 * (a/l**2)
+for i in range(len(x0)):
+    for j in range(len(t0)):
+        if j == 0 or i == len(x0) - 1:
+            U[i][j] = 10
+
+for j in range(1, len(t0)):
+    K = np.zeros((nx + 1, nx + 1))
+    B = np.zeros((nx + 1, 1))
+    for i in range(1, len(x0) - 1):
+        K[i][i - 1] = -sigma/hx**2
+        K[i][i] = 2 * sigma/hx**2 + 1/ht
+        K[i][i + 1] = -sigma/hx**2
+        B[i][0] = f(tj[j], xi[i])*(l**2/a) + (1 - sigma) * (U[j - 1][i - 1] - 2 * U[j - 1][i] + U[j - 1][i + 1])/hx**2 + U[j - 1][i]/ht
+    K[0][0] = 1
+    K[nx][nx] = 1
+    B[0][0] = 15
+    B[nx][0] = 30
+    uj = np.linalg.solve(K, B)
+    print(len(uj))
